@@ -12,7 +12,7 @@
 
 ## 原理
 
-![](process.png)
+![](workflow.png)
 
 ## 作者
 
