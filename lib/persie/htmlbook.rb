@@ -29,6 +29,14 @@ module Persie
 
     def initialize(backend, opts={})
       super
+
+      # These two vars are used to auto-numbering figures, listing, etc
+      @reset_num = nil
+      @nums = {
+        'image' => 0,
+        'listing' => 0,
+        'table' => 0
+      }
     end
 
     def convert node, transform = nil
@@ -57,6 +65,7 @@ module Persie
         result << %(<meta name="viewport" content="width=device-width, initial-scale=1.0"/>)
       end
       result << %(<meta name="generator" content="Persie #{node.attr 'persie-version'}"/>)
+      result << %(<meta name="date" content="#{node.revdate}"/>)
       result << %(<meta name="application-name" content="#{node.attr 'app-name'}"/>) if node.attr? 'app-name'
       result << %(<meta name="description" content="#{node.attr 'description'}"/>) if node.attr? 'description'
       result << %(<meta name="keywords" content="#{node.attr 'keywords'}"/>) if node.attr? 'keywords'
@@ -413,7 +422,7 @@ Your browser does not support the audio tag.
       id_attr = node.id ? %( id="#{node.id}") : nil
       classes = ['image', node.style, node.role].compact
       class_attr = %( class="#{classes * ' '}")
-      title_element = node.title? ? %(\n<<figcaption>>#{node.captioned_title}</<figcaption>>) : '<figcaption/>'
+      title_element = node.title? ? %(\n<<figcaption>>#{captioned_title_mod_of(node)}</<figcaption>>) : '<figcaption/>'
 
       %(<figure#{id_attr}#{class_attr}#{style_attr}>#{img_element}#{title_element}</figure>)
     end
@@ -452,9 +461,11 @@ Your browser does not support the audio tag.
       end
 
       id_attr = node.id ? %( id="#{node.id}") : nil
-      title_element = node.title? ? %(<h5>#{node.captioned_title}</h5>\n) : nil
+      class_attr = node.role ? %( class="#{node.role}") : nil
+      node.assign_caption(nil, true)
+      title_element = node.title? ? %(<h5>#{captioned_title_mod_of(node)}</h5>\n) : nil
 
-      result = [%(<div#{id_attr} data-type="listing" class="#{(role = node.role) && " #{role}"}">)]
+      result = [%(<div#{id_attr} data-type="listing"#{class_attr}>)]
       result << title_element
       result << %(#{pre_start}#{node.content}#{pre_end})
       result << '</div>'
@@ -612,7 +623,7 @@ Your browser does not support the audio tag.
       style_attribute = styles.size > 0 ? %( style="#{styles * ' '}") : nil
 
       result << %(<table#{id_attribute}#{class_attribute}#{style_attribute}>)
-      result << %(<caption class="title">#{node.captioned_title}</caption>) if node.title?
+      result << %(<caption class="title">#{captioned_title_mod_of(node)}</caption>) if node.title?
       if (node.attr 'rowcount') > 0
         slash = '/'
         result << '<colgroup>'
@@ -821,7 +832,7 @@ Your browser does not support the video tag.
     def inline_footnote node
       if (index = node.attr 'index')
         if node.type == :xref
-          %(<a data-type="footnoteref" href="##{node.target}"/>)
+          %(<a data-type="footnoteref" href="##{node.target}">#{index}</a>)
         else
           id_attr = node.id ? %( id="#{node.id}") : nil
           %(<span data-type="footnote"#{id_attr}>#{node.text}</span>)
@@ -912,23 +923,23 @@ Your browser does not support the video tag.
       result = [%(<section data-type="titlepage">)]
       result << %(<h1>#{node.header.title}</h1>)
       result << %(<h2>#{node.attr :subtitle}</h2>) if node.attr? :subtitle
-      if [node.attr?(:author), node.attr?(:translator)].any?
+      if [node.attr?(:author), node.attr?('persie-translator')].any?
         result << '<p class="author">'
 
         if node.attr?(:author)
-          author_text = if node.attr?('author-label')
-            node.attr('author-label')
+          author_text = if node.attr?('persie-author-label')
+            node.attr('persie-author-label')
           else
             node.attr :author
           end
           result << %(<span data-type="author">#{author_text}</span>)
         end
 
-        if node.attr?(:translator)
-          translator_text = if node.attr?('translator-label')
-            node.attr('translator-label')
+        if node.attr?('persie-translator')
+          translator_text = if node.attr?('persie-translator-label')
+            node.attr('persie-translator-label')
           else
-            node.attr :translator
+            node.attr('persie-translator')
           end
           result << %(<br/><span data-type="translator">#{translator_text}</span>)
         end
@@ -980,6 +991,29 @@ Your browser does not support the video tag.
       else
         "sect#{slevel - 1}"
       end
+    end
+
+    def captioned_title_mod_of(node, sep='-', after='. ')
+      unless (caption = node.document.attr("#{node.context}-caption"))
+        return node.captioned_title
+      end
+
+      ctx = node.context
+
+      level_1_num = node.parent.sectnum.split('.', 2).first
+      @reset_num ||= level_1_num
+      if @reset_num != level_1_num
+        @nums = {
+          'image' => 0,
+          'listing' => 0,
+          'table' => 0
+        }
+        @nums["#{ctx}"] += 1
+        @reset_num = nil
+      else
+        @nums["#{ctx}"] += 1
+      end
+      "#{caption}#{level_1_num}#{sep}#{@nums["#{ctx}"]}#{after}#{node.title}"
     end
 
   end
