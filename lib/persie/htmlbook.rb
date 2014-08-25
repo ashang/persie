@@ -1,4 +1,5 @@
 require 'asciidoctor'
+require 'rouge'
 
 module Persie
   # A custom Asciidoctor backend, convert AsciiDoc to O'Reilly HTMLBook.
@@ -39,19 +40,19 @@ module Persie
       }
     end
 
-    def convert node, transform = nil
+    def convert(node, transform = nil)
       transform ||= node.node_name
-      send transform, node
+      send(transform, node)
     end
 
-    def document node
+    def document(node)
       # In this method, node == node.document
       # In other methods, you should use node.document
       ebook_format = node.attr('ebook-format')
       result = []
 
       result << '<!DOCTYPE html>'
-      lang_attr = %(lang="#{node.attr 'lang', 'en'}")
+      lang_attr = %(lang="#{node.attr('lang', 'en')}")
       if EPUB_FORMATS.include? ebook_format
         result << %(<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:#{lang_attr} #{lang_attr})
       else
@@ -124,7 +125,7 @@ MathJax.Hub.Config({
     end
 
     # NOTE: not touched
-    def embedded node
+    def embedded(node)
       result = []
       if !node.notitle && node.has_header?
         id_attr = node.id ? %( id="#{node.id}") : nil
@@ -148,7 +149,7 @@ MathJax.Hub.Config({
       result * "\n"
     end
 
-    def outline node, opts = {}
+    def outline(node, opts = {})
       return if (sections = node.sections).empty?
 
       sectnumlevels = opts[:sectnumlevels] || (node.document.attr 'sectnumlevels', 3).to_i
@@ -170,9 +171,9 @@ MathJax.Hub.Config({
       result * "\n"
     end
 
-    def toc node
+    def toc(node)
       doc = node.document
-      return nil unless doc.attr? 'toc'
+      return nil unless doc.attr?('toc')
 
       result = [%(<nav data-type="toc" class="#{doc.attr 'toc-class', 'toc'}">)]
       result << %(<h1>#{doc.attr 'toc-title'}</h1>)
@@ -182,7 +183,7 @@ MathJax.Hub.Config({
     end
 
     # For ePub only
-    def navigation_document node, spine
+    def navigation_document(node, spine)
       doctitle_sanitized = ((node.doctitle sanitize: true) || (node.attr 'untitled-label')).gsub WordJoiner, ''
       result = ['<!DOCTYPE html>']
       result << %(<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="#{lang = (node.attr 'lang', 'en')}" lang="#{lang}">)
@@ -207,7 +208,7 @@ MathJax.Hub.Config({
       result * "\n"
     end
 
-    def section node
+    def section(node)
       ebook_format = node.document.attr('ebook-format')
       slevel = node.level
       slevel = 1 if slevel == 0 && node.special
@@ -241,7 +242,7 @@ MathJax.Hub.Config({
       result * "\n"
     end
 
-    def admonition node
+    def admonition(node)
       ebook_format = node.document.attr('ebook-format')
       id_attr = node.id ? %( id="#{node.id}") : nil
       class_attr = node.role ? %( class="#{node.role}") : nil
@@ -270,7 +271,7 @@ MathJax.Hub.Config({
     end
 
     # NOTE: not touched
-    def audio node
+    def audio(node)
       xml = node.document.attr? 'htmlsyntax', 'xml'
       id_attribute = node.id ? %( id="#{node.id}") : nil
       classes = ['audioblock', node.style, node.role].compact
@@ -285,7 +286,7 @@ Your browser does not support the audio tag.
 </div>)
     end
 
-    def colist node
+    def colist(node)
       result = []
       digits = ['&#x278a;', '&#x278b;', '&#x278c;', '&#x278d;', '&#x278e;', '&#x278f;', '&#x2790;', '&#x279a;', '&#x2792;', '&#x2793;']
       id_attr = node.id ? %( id="#{node.id}") : nil
@@ -306,7 +307,7 @@ Your browser does not support the audio tag.
       result * "\n"
     end
 
-    def dlist node
+    def dlist(node)
       result = []
       id_attribute = node.id ? %( id="#{node.id}") : nil
 
@@ -388,7 +389,7 @@ Your browser does not support the audio tag.
       result * "\n"
     end
 
-    def example node
+    def example(node)
       id_attr = node.id ? %( id="#{node.id}") : nil
       class_attr = node.role ? %( class="#{node.role}") : nil
       title_element = node.title? ? %(<h5>#{node.captioned_title}</h5>\n) : nil
@@ -397,14 +398,14 @@ Your browser does not support the audio tag.
     end
 
     # NOTE: not touched
-    def floating_title node
+    def floating_title(node)
       tag_name = %(h#{node.level + 1})
       id_attribute = node.id ? %( id="#{node.id}") : nil
       classes = [node.style, node.role].compact
       %(<#{tag_name}#{id_attribute} class="#{classes * ' '}">#{node.title}</#{tag_name}>)
     end
 
-    def image node
+    def image(node)
       align = (node.attr? 'align') ? (node.attr 'align') : nil
       float = (node.attr? 'float') ? (node.attr 'float') : nil
       style_attr = if align || float
@@ -427,57 +428,46 @@ Your browser does not support the audio tag.
       %(<figure#{id_attr}#{class_attr}#{style_attr}>#{img_element}#{title_element}</figure>)
     end
 
-    # FIXME: needs clean up
-    def listing node
-      nowrap = !(node.document.attr? 'prewrap') || (node.option? 'nowrap')
+    # Use rouge to highlight source code
+    # You can set `:persie-hightlight:' document attribute to trun on highlight
+    # You can set `linenums' block attribute to turn on line numbers for specific source block
+    def listing(node)
       if node.style == 'source'
-        language = node.attr 'language'
-        language_classes = language ? %(#{language} language-#{language}) : nil
-        case node.attr 'source-highlighter'
-        when 'coderay'
-          pre_class = nowrap ? ' class="CodeRay nowrap"' : ' class="CodeRay"'
-          code_class = language ? %( class="#{language_classes}") : nil
-        when 'pygments'
-          pre_class = nowrap ? ' class="pygments highlight nowrap"' : ' class="pygments highlight"'
-          code_class = language ? %( class="#{language_classes}") : nil
-        when 'highlightjs', 'highlight.js'
-          pre_class = nowrap ? ' class="highlight nowrap"' : ' class="highlight"'
-          code_class = language ? %( class="#{language_classes}") : nil
-        when 'prettify'
-          pre_class = %( class="prettyprint#{nowrap ? ' nowrap' : nil}#{(node.attr? 'linenums') ? ' linenums' : nil}")
-          code_class = language ? %( class="#{language_classes}") : nil
-        when 'html-pipeline'
-          pre_class = language ? %( lang="#{language}") : nil
-          code_class = nil
+        language = node.attr('language') # will fall back to global language attribute
+        highlight = node.document.attr?('persie-highlight')
+        linenums = node.attr?('linenums')
+
+        if highlight
+          classes = "highlight language-#{language}"
+          pre_element = rouge_highlight(node.content, language, classes, linenums)
         else
-          pre_class = nowrap ? ' class="highlight nowrap"' : ' class="highlight"'
-          code_class = language ? %( class="#{language_classes}") : nil
+          if linenums
+            pre_element = rouge_highlight(node.content, 'plaintext', '', true)
+          else
+            pre_element = %(<pre><code class="language-#{language}">#{node.content}<code></pre>)
+          end
         end
-        pre_start = %(<pre#{pre_class}><code#{code_class}>)
-        pre_end = '</code></pre>'
       else
-        pre_start = %(<pre#{nowrap ? ' class="nowrap"' : nil}>)
-        pre_end = '</pre>'
+        pre_element = %(<pre>#{node.content}</pre>)
       end
 
       id_attr = node.id ? %( id="#{node.id}") : nil
       class_attr = node.role ? %( class="#{node.role}") : nil
-      node.assign_caption(nil, true)
       title_element = node.title? ? %(<h5>#{captioned_title_mod_of(node)}</h5>\n) : nil
 
       result = [%(<div#{id_attr} data-type="listing"#{class_attr}>)]
       result << title_element
-      result << %(#{pre_start}#{node.content}#{pre_end})
+      result << pre_element
       result << '</div>'
 
       result * "\n"
     end
 
-    def literal node
+    def literal(node)
       %(<pre>#{node.content}</pre>)
     end
 
-    def math node
+    def math(node)
       id_attr = node.id ? %( id="#{node.id}") : nil
       class_attr = node.role ? %( class="#{node.role}") : nil
       title_element = node.title? ? %(<h5>#{node.title}</h5>\n) : nil
@@ -500,7 +490,7 @@ Your browser does not support the audio tag.
       result * "\n"
     end
 
-    def olist node
+    def olist(node)
       result = []
       id_attr = node.id ? %( id="#{node.id}") : nil
       classes = [node.style, node.role].compact
@@ -522,7 +512,7 @@ Your browser does not support the audio tag.
     end
 
     # NOTE: not touched
-    def open node
+    def open(node)
       if (style = node.style) == 'abstract'
         if node.parent == node.document && node.document.doctype == 'book'
           warn 'asciidoctor: WARNING: abstract block cannot be used in a document without a title when doctype is book. Excluding block content.'
@@ -550,7 +540,7 @@ Your browser does not support the audio tag.
       end
     end
 
-    def page_break node
+    def page_break(node)
       ebook_format = node.document.attr('ebook-format')
       if EPUB_FORMATS.include? ebook_format
         '<hr epub:type="pagebreak"/>'
@@ -559,18 +549,18 @@ Your browser does not support the audio tag.
       end
     end
 
-    def paragraph node
+    def paragraph(node)
       id_attr = node.id ? %( id="#{node.id}") : nil
       class_attr = node.role ? %( class="#{node.role}") : nil
 
       %(<p#{id_attr}#{class_attr}>#{node.content}</p>)
     end
 
-    def preamble node
+    def preamble(node)
       %(<section data-type="preamble">#{node.content}</section>)
     end
 
-    def quote node
+    def quote(node)
       id_attr = node.id ? %( id="#{node.id}") : nil
       class_attr = node.role ? %( class="#{node.role}") : nil
       attribution = (node.attr? 'attribution') ? (node.attr 'attribution') : nil
@@ -587,11 +577,11 @@ Your browser does not support the audio tag.
       %(<blockquote#{id_attr}#{class_attr}>#{node.content}#{attribution_element}</blockquote>)
     end
 
-    def thematic_break node
+    def thematic_break(node)
       '<hr/>'
     end
 
-    def sidebar node
+    def sidebar(node)
       ebook_format = node.document.attr('ebook-format')
       id_attr = node.id ? %( id="#{node.id}") : nil
       role = node.role ? %( #{node.role}) : nil
@@ -611,7 +601,7 @@ Your browser does not support the audio tag.
       result * "\n"
     end
 
-    def table node
+    def table(node)
       result = []
       id_attribute = node.id ? %( id="#{node.id}") : nil
       classes = ['tableblock', %(frame-#{node.attr 'frame', 'all'}), %(grid-#{node.attr 'grid', 'all'})]
@@ -677,7 +667,7 @@ Your browser does not support the audio tag.
       result * "\n"
     end
 
-    def ulist node
+    def ulist(node)
       result = []
       id_attr = node.id ? %( id="#{node.id}") : nil
       classes = [node.style, node.role].compact
@@ -720,7 +710,7 @@ Your browser does not support the audio tag.
       result * "\n"
     end
 
-    def verse node
+    def verse(node)
       id_attr = node.id ? %( id="#{node.id}") : nil
       classes = ['verse', node.role].compact
       class_attr = %( class="#{classes * ' '}")
@@ -743,7 +733,7 @@ Your browser does not support the audio tag.
     end
 
     # NOTE: not touched
-    def video node
+    def video(node)
       xml = node.document.attr? 'htmlsyntax', 'xml'
       id_attribute = node.id ? %( id="#{node.id}") : nil
       classes = ['videoblock', node.style, node.role].compact
@@ -787,7 +777,7 @@ Your browser does not support the video tag.
       end
     end
 
-    def inline_anchor node
+    def inline_anchor(node)
       target = node.target
       case node.type
       when :xref
@@ -809,15 +799,15 @@ Your browser does not support the video tag.
       end
     end
 
-    def inline_break node
+    def inline_break(node)
       %(#{node.text}<br/>)
     end
 
-    def inline_button node
+    def inline_button(node)
       %(<b class="button">#{node.text}</b>)
     end
 
-    def inline_callout node
+    def inline_callout(node)
       if node.document.attr? 'icons', 'font'
         %(<i class="conum" data-value="#{node.text}"></i><b>(#{node.text})</b>)
       elsif node.document.attr? 'icons'
@@ -828,8 +818,7 @@ Your browser does not support the video tag.
       end
     end
 
-    # FIXME: need complete
-    def inline_footnote node
+    def inline_footnote(node)
       if (index = node.attr 'index')
         if node.type == :xref
           %(<a data-type="footnoteref" href="##{node.target}">#{index}</a>)
@@ -842,7 +831,7 @@ Your browser does not support the video tag.
       end
     end
 
-    def inline_image node
+    def inline_image(node)
       if (type = node.type) == 'icon' && (node.document.attr? 'icons', 'font')
         style_class = "icon-#{node.target}"
         if node.attr? 'size'
@@ -879,12 +868,12 @@ Your browser does not support the video tag.
       %(<span class="#{style_classes}"#{style_attr}>#{img}</span>)
     end
 
-    # FIXME: need expanded
-    def inline_indexterm node
+    # FIXME: need expanded asccording to asccidoctor_html
+    def inline_indexterm(node)
       node.type == :visible ? node.text : ''
     end
 
-    def inline_kbd node
+    def inline_kbd(node)
       if (keys = node.attr 'keys').size == 1
         %(<kbd>#{keys[0]}</kbd>)
       else
@@ -893,7 +882,7 @@ Your browser does not support the video tag.
       end
     end
 
-    def inline_menu node
+    def inline_menu(node)
       menu = node.attr 'menu'
       if !(submenus = node.attr 'submenus').empty?
         submenu_path = submenus.map {|submenu| %(<span class="submenu">#{submenu}</span>&#160;&#9656; ) }.join.chop
@@ -905,7 +894,7 @@ Your browser does not support the video tag.
       end
     end
 
-    def inline_quoted node
+    def inline_quoted(node)
       open, close, is_tag = QUOTE_TAGS[node.type]
       quoted_text = if (role = node.role)
         is_tag ? %(#{open.chop} class="#{role}">#{node.text}#{close}) : %(<span class="#{role}">#{open}#{node.text}#{close}</span>)
@@ -918,8 +907,8 @@ Your browser does not support the video tag.
 
     private
 
-    # For PDF only
-    def titlepage node
+    # Generate a title page for PDF format
+    def titlepage(node)
       result = [%(<section data-type="titlepage">)]
       result << %(<h1>#{node.header.title}</h1>)
       result << %(<h2>#{node.attr :subtitle}</h2>) if node.attr? :subtitle
@@ -960,11 +949,12 @@ Your browser does not support the video tag.
       result * "\n"
     end
 
-    def append_boolean_attribute name, xml
+    def append_boolean_attribute(name, xml)
       xml ? %( #{name}="#{name}") : %( #{name})
     end
 
-    def data_type_of node
+    # Find out the data type of a node
+    def data_type_of(node)
       slevel = node.level
       data_type = if slevel == 0
         if node.title == node.document.attr('colophon-title', 'Colophon')
@@ -993,6 +983,7 @@ Your browser does not support the video tag.
       end
     end
 
+    # Add auto-numbered lable to images, tables and listings
     def captioned_title_mod_of(node, sep='-', after='. ')
       unless (caption = node.document.attr("#{node.context}-caption"))
         return node.captioned_title
@@ -1014,6 +1005,16 @@ Your browser does not support the video tag.
         @nums["#{ctx}"] += 1
       end
       "#{caption}#{level_1_num}#{sep}#{@nums["#{ctx}"]}#{after}#{node.title}"
+    end
+
+    # Use rouge to highlight source code
+    def rouge_highlight(text, lexer, classes, linenums, &b)
+      lexer = ::Rouge::Lexer.find(lexer) unless lexer.respond_to? :lex
+      lexer = ::Rouge::Lexers::PlainText unless lexer
+
+      formatter = ::Rouge::Formatters::HTML.new(css_class: classes, line_numbers: linenums)
+
+      formatter.format(lexer.lex(text), &b)
     end
 
   end
