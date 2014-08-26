@@ -124,7 +124,7 @@ MathJax.Hub.Config({
       result * "\n"
     end
 
-    # NOTE: not touched
+    # FIXME: need review
     def embedded(node)
       result = []
       if !node.notitle && node.has_header?
@@ -136,7 +136,7 @@ MathJax.Hub.Config({
 
       if node.footnotes? && !(node.attr? 'nofootnotes')
         result << %(<div id="footnotes">
-<hr#{@void_element_slash}>)
+<hr/>)
         node.footnotes.each do |footnote|
           result << %(<div class="footnote" id="_footnote_#{footnote.index}">
 <a href="#_footnoteref_#{footnote.index}">#{footnote.index}</a> #{footnote.text}
@@ -270,7 +270,7 @@ MathJax.Hub.Config({
       result * "\n"
     end
 
-    # NOTE: not touched
+    # fixme: not touched, need cleanup
     def audio(node)
       xml = node.document.attr? 'htmlsyntax', 'xml'
       id_attribute = node.id ? %( id="#{node.id}") : nil
@@ -294,16 +294,14 @@ Your browser does not support the audio tag.
       class_attr = %( class="#{classes * ' '}")
       start_attr = node.attr?('start') ? %( start="#{node.attr('start')}") : nil
 
-      result << %(<ol#{id_attr}#{class_attr}#{start_attr}>)
+      result << %(<dl#{id_attr}#{class_attr}#{start_attr}>)
 
       node.items.each_with_index do |item, i|
-        result << '<li>'
-        result << %(<p>#{digits[i]}#{item.text}</p>)
-        result << item.content if item.block?
-        result << '</li>'
+        result << %(<dt>#{digits[i]}</dt>)
+        result << %(<dd><p>#{item.text}</p>#{item.block? ? item.content : nil}</dd>)
       end
 
-      result << '</ol>'
+      result << '</dl>'
       result * "\n"
     end
 
@@ -397,7 +395,7 @@ Your browser does not support the audio tag.
       %(<div data-type="example"#{id_attr}#{class_attr}>#{title_element}#{node.content}</div>)
     end
 
-    # NOTE: not touched
+    # FIXME: not touched, need cleanup
     def floating_title(node)
       tag_name = %(h#{node.level + 1})
       id_attribute = node.id ? %( id="#{node.id}") : nil
@@ -511,7 +509,7 @@ Your browser does not support the audio tag.
       result * "\n"
     end
 
-    # NOTE: not touched
+    # FIXME: not touched, need cleanup
     def open(node)
       if (style = node.style) == 'abstract'
         if node.parent == node.document && node.document.doctype == 'book'
@@ -732,7 +730,7 @@ Your browser does not support the audio tag.
       result * "\n"
     end
 
-    # NOTE: not touched
+    # FIXME: not touched, need cleanup
     def video(node)
       xml = node.document.attr? 'htmlsyntax', 'xml'
       id_attribute = node.id ? %( id="#{node.id}") : nil
@@ -819,15 +817,12 @@ Your browser does not support the video tag.
     end
 
     def inline_footnote(node)
-      if (index = node.attr 'index')
-        if node.type == :xref
-          %(<a data-type="footnoteref" href="##{node.target}">#{index}</a>)
-        else
-          id_attr = node.id ? %( id="#{node.id}") : nil
-          %(<span data-type="footnote"#{id_attr}>#{node.text}</span>)
-        end
-      elsif node.type == :xref
-        %(<span data-type="footnoteref red">#{node.text}</span>)
+      index = attr('index')
+      if node.type == :xref
+        %(<a data-type="footnoteref" href="##{node.target}">#{index}</a>)
+      else
+        id_attr = node.id ? %( id="#{node.id}") : nil
+        %(<span data-type="footnote"#{id_attr}>#{node.text}</span>)
       end
     end
 
@@ -954,6 +949,7 @@ Your browser does not support the video tag.
     end
 
     # Find out the data type of a node
+    # FIXME: maybe all use sectname to determine data-type
     def data_type_of(node)
       slevel = node.level
       data_type = if slevel == 0
