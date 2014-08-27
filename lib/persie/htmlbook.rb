@@ -77,6 +77,7 @@ module Persie
       stylesheet_path = File.join(node.attr('theme-dir'), ebook_format, 'style.css')
       result << %(<link rel="stylesheet" href="#{stylesheet_path}"/>)
 
+      # FIXME: cleanup
       if node.attr? 'math'
         result << %(<script type="text/x-mathjax-config">
 MathJax.Hub.Config({
@@ -95,6 +96,7 @@ MathJax.Hub.Config({
 <script>document.addEventListener('DOMContentLoaded', MathJax.Hub.TypeSet)</script>)
       end
 
+      # Use seperate docinfo file
       unless (docinfo_content = node.docinfo).empty?
         result << docinfo_content
       end
@@ -149,6 +151,7 @@ MathJax.Hub.Config({
       result * "\n"
     end
 
+    # Generate an outline for use in toc page
     def outline(node, opts = {})
       return if (sections = node.sections).empty?
 
@@ -168,17 +171,6 @@ MathJax.Hub.Config({
         result << '</li>'
       end
       result << '</ol>'
-      result * "\n"
-    end
-
-    def toc(node)
-      doc = node.document
-      return nil unless doc.attr?('toc')
-
-      result = [%(<nav data-type="toc" class="#{doc.attr 'toc-class', 'toc'}">)]
-      result << %(<h1>#{doc.attr 'toc-title'}</h1>)
-      result << outline(node)
-      result << '</nav>'
       result * "\n"
     end
 
@@ -817,7 +809,7 @@ Your browser does not support the video tag.
     end
 
     def inline_footnote(node)
-      index = attr('index')
+      index = node.attr('index')
       if node.type == :xref
         %(<a data-type="footnoteref" href="##{node.target}">#{index}</a>)
       else
@@ -902,6 +894,18 @@ Your browser does not support the video tag.
 
     private
 
+    # Generate table of contents
+    def toc(node)
+      doc = node.document
+      return nil unless doc.attr?('toc')
+
+      result = [%(<nav data-type="toc" class="#{doc.attr 'toc-class', 'toc'}">)]
+      result << %(<h1>#{doc.attr 'toc-title'}</h1>)
+      result << outline(node)
+      result << '</nav>'
+      result * "\n"
+    end
+
     # Generate a title page for PDF format
     def titlepage(node)
       result = [%(<section data-type="titlepage">)]
@@ -944,35 +948,21 @@ Your browser does not support the video tag.
       result * "\n"
     end
 
+    # FIXME: after cleanup, delete this
     def append_boolean_attribute(name, xml)
       xml ? %( #{name}="#{name}") : %( #{name})
     end
 
     # Find out the data type of a node
-    # FIXME: maybe all use sectname to determine data-type
     def data_type_of(node)
       slevel = node.level
       data_type = if slevel == 0
-        if node.title == node.document.attr('colophon-title', 'Colophon')
-          'colophon'
-        elsif node.title == node.document.attr('index-title', 'Index')
-          'index'
-        else
-          'part'
-        end
+        node.sectname || 'part'
       elsif slevel == 1
-        if node.sectname == 'preface' && node.title == node.document.attr('foreword-title', 'Foreword')
-          'foreword'
-        elsif node.sectname == 'preface'
-          'preface'
-        elsif node.sectname == 'appendix'
-          'appendix'
-        elsif node.title == node.document.attr('glossary-title', 'Glossary')
-          'glossary'
-        elsif node.title == node.document.attr('dedication-title', 'Dedication')
-          'dedication'
-        else
+        if node.sectname == 'sect1'
           'chapter'
+        else
+          node.sectname
         end
       else
         "sect#{slevel - 1}"
