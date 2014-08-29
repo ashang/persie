@@ -1,6 +1,8 @@
 require 'asciidoctor'
 require 'rouge'
 
+require 'time'
+
 module Persie
   # A custom Asciidoctor backend, convert AsciiDoc to O'Reilly HTMLBook.
   class HTMLBook
@@ -66,7 +68,7 @@ module Persie
         result << %(<meta name="viewport" content="width=device-width, initial-scale=1.0"/>)
       end
       result << %(<meta name="generator" content="Persie #{node.attr 'persie-version'}"/>)
-      result << %(<meta name="date" content="#{node.revdate}"/>)
+      result << %(<meta name="date" content="#{Time.parse(node.revdate).iso8601}"/>)
       result << %(<meta name="application-name" content="#{node.attr 'app-name'}"/>) if node.attr? 'app-name'
       result << %(<meta name="description" content="#{node.attr 'description'}"/>) if node.attr? 'description'
       result << %(<meta name="keywords" content="#{node.attr 'keywords'}"/>) if node.attr? 'keywords'
@@ -161,16 +163,19 @@ MathJax.Hub.Config({
 
       result << '<ol>'
       sections.each do |section|
-        data_type_attr = %( data-type="#{data_type_of(section)}")
+        data_type = data_type_of(section)
+        data_type_attr = %( data-type="#{data_type}")
         section_num = (section.numbered && !section.caption && section.level <= sectnumlevels) ? %(#{section.sectnum} ) : nil
         result << %(<li#{data_type_attr}>)
-        result << %(<a href="##{section.id}">#{section_num}#{section.captioned_title}</a>)
+        before_title = caption_before_title_of(section, section_num)
+        result << %(<a href="##{section.id}"><span class="label">#{before_title}</span> #{section.title}</a>)
         if section.level < toclevels && (child_toc_level = outline section, :toclevels => toclevels, :secnumlevels => sectnumlevels)
           result << child_toc_level
         end
         result << '</li>'
       end
       result << '</ol>'
+
       result * "\n"
     end
 
@@ -207,8 +212,8 @@ MathJax.Hub.Config({
       id_attr = node.id ? %( id="#{node.id}") : nil
       class_attr = node.role ? %( class="#{node.role}") : nil
       epub_type_attr = (EPUB_FORMATS.include?(ebook_format) && node.special) ? %( epub:type="#{node.sectname}") : nil
-      sectnum = if node.numbered && !node.caption && slevel <= (node.document.attr 'sectnumlevels', 3).to_i && ![0, 1].include?(slevel)
-        %(<span>#{node.sectnum}</span> )
+      sectnum = if node.numbered && !node.caption && slevel <= (node.document.attr 'sectnumlevels', 3).to_i && slevel != 0
+        node.sectnum
       else
         nil
       end
@@ -227,7 +232,9 @@ MathJax.Hub.Config({
       end
 
       result = [%(<#{wrapper_tag} data-type="#{data_type}"#{epub_type_attr}#{id_attr}#{class_attr}>)]
-      result << %(<h#{h_level}>#{sectnum}#{node.title}</h#{h_level}>)
+      before_title = caption_before_title_of(node, sectnum)
+
+      result << %(<h#{h_level}><span class="label">#{before_title}</span> #{node.title}</h#{h_level}>)
       result << node.content
       result << %(</#{wrapper_tag}>)
 
@@ -419,12 +426,12 @@ Your browser does not support the audio tag.
     end
 
     # Use rouge to highlight source code
-    # You can set `:persie-hightlight:' document attribute to trun on highlight
+    # You can set `:hightlight:' document attribute to trun on highlight
     # You can set `linenums' block attribute to turn on line numbers for specific source block
     def listing(node)
       if node.style == 'source'
         language = node.attr('language') # will fall back to global language attribute
-        highlight = node.document.attr?('persie-highlight')
+        highlight = node.document.attr?('highlight')
         linenums = node.attr?('linenums')
 
         if highlight
@@ -903,6 +910,9 @@ Your browser does not support the video tag.
       result << %(<h1>#{doc.attr 'toc-title'}</h1>)
       result << outline(node)
       result << '</nav>'
+
+      reset_numbers_of_chapter_appendix_part_for(node)
+
       result * "\n"
     end
 
@@ -911,23 +921,23 @@ Your browser does not support the video tag.
       result = [%(<section data-type="titlepage">)]
       result << %(<h1>#{node.header.title}</h1>)
       result << %(<h2>#{node.attr :subtitle}</h2>) if node.attr? :subtitle
-      if [node.attr?(:author), node.attr?('persie-translator')].any?
+      if [node.attr?(:author), node.attr?('translator')].any?
         result << '<p class="author">'
 
         if node.attr?(:author)
-          author_text = if node.attr?('persie-author-label')
-            node.attr('persie-author-label')
+          author_text = if node.attr?('author-label')
+            node.attr('author-label')
           else
             node.attr :author
           end
           result << %(<span data-type="author">#{author_text}</span>)
         end
 
-        if node.attr?('persie-translator')
-          translator_text = if node.attr?('persie-translator-label')
-            node.attr('persie-translator-label')
+        if node.attr?('translator')
+          translator_text = if node.attr?('translator-label')
+            node.attr('translator-label')
           else
-            node.attr('persie-translator')
+            node.attr('translator')
           end
           result << %(<br/><span data-type="translator">#{translator_text}</span>)
         end
@@ -935,15 +945,27 @@ Your browser does not support the video tag.
         result << '</p>'
       end
 
-      if node.attr? 'revnumber'
-        result << %(<span data-type="revnumber">#{((node.attr 'version-label') || '').downcase} #{node.attr 'revnumber'}#{(node.attr? 'revdate') ? ',' : ''}</span>)
+      has_revnumber = node.attr?('revnumber')
+      has_revdate   = node.attr?('revdate')
+      has_revremark = node.attr?('revremark')
+      has_rev_info = [has_revnumber, has_revdate, has_revremark].any?
+
+      if has_rev_info
+        result << %(<div class="revinfo">)
       end
-      if node.attr? 'revdate'
+      if has_revnumber
+        result << %(<span data-type="revnumber">#{((node.attr 'version-label') || '').downcase} #{node.attr 'revnumber'}#{has_revdate ? ',' : ''}</span>)
+      end
+      if has_revdate
         result << %(<span data-type="revdate">#{node.attr 'revdate'}</span>)
       end
-      if node.attr? 'revremark'
+      if has_revremark
         result << %(<br/><span data-type="revremark">#{node.attr 'revremark'}</span>)
       end
+      if has_rev_info
+        result << %(</div>)
+      end
+
       result << %(</section>)
       result * "\n"
     end
@@ -969,16 +991,42 @@ Your browser does not support the video tag.
       end
     end
 
+    # Genarate auto-numbered caption to titles of chapter, appendix and part
+    def caption_before_title_of(node, fallback=nil)
+      data_type = data_type_of(node)
+
+      if data_type == 'chapter' && node.document.attr?('chapter-caption')
+        pure_sectnum = node.document.counter('chapter-number', 1).to_s
+        output = node.document.attr('chapter-caption').sub('%NUM%', pure_sectnum)
+      elsif data_type == 'appendix' && node.document.attr?('appendix-caption')
+        pure_sectnum = node.document.counter('appendix-number', 'A')
+        output =node.document.attr('appendix-caption').sub('%NUM%', pure_sectnum)
+      else
+        output = fallback
+      end
+
+      output
+    end
+
+    # Cause we would call `caption_before_title_of' many times,
+    # so we should reset the numbers after one call.
+    def reset_numbers_of_chapter_appendix_part_for(node)
+      attrs = node.document.attributes
+      ['chapter-number', 'appendix-number'].each do |num|
+        attrs[num] = nil
+      end
+    end
+
     # Add auto-numbered lable to images, tables and listings
-    def captioned_title_mod_of(node, sep='-', after='. ')
+    def captioned_title_mod_of(node)
       unless (caption = node.document.attr("#{node.context}-caption"))
         return node.captioned_title
       end
 
       ctx = node.context
-
       level_1_num = node.parent.sectnum.split('.', 2).first
       @reset_num ||= level_1_num
+
       if @reset_num != level_1_num
         @nums = {
           'image' => 0,
@@ -990,7 +1038,11 @@ Your browser does not support the video tag.
       else
         @nums["#{ctx}"] += 1
       end
-      "#{caption}#{level_1_num}#{sep}#{@nums["#{ctx}"]}#{after}#{node.title}"
+
+      caption_replaced = caption.sub('%NUM%', level_1_num.to_s)
+                                .sub('%SUBNUM%', @nums["#{ctx}"].to_s)
+
+      %(<span class="label">#{caption_replaced}</span> #{node.title})
     end
 
     # Use rouge to highlight source code
