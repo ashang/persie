@@ -29,6 +29,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency('thor',         '0.19.1')
   s.add_runtime_dependency('rouge',        '1.6.2')
   s.add_runtime_dependency('gepub',        '0.6.9.2')
+  s.add_runtime_dependency('nokogiri',     '1.6.3.1')
   s.add_runtime_dependency('asciidoctor',  '1.5.0')
 
   s.add_development_dependency('rake',     '~> 10.3.2')

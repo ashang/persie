@@ -56,7 +56,7 @@ module Persie
       result << '<!DOCTYPE html>'
       lang_attr = %(lang="#{node.attr('lang', 'en')}")
       if EPUB_FORMATS.include? ebook_format
-        result << %(<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:#{lang_attr} #{lang_attr})
+        result << %(<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:#{lang_attr} #{lang_attr}>)
       else
         result << %(<html xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.w3.org/1999/xhtml" #{lang_attr}>)
       end
@@ -115,11 +115,8 @@ MathJax.Hub.Config({
         result << %(<figure data-type="cover"><img src="#{cover_path}"/></figure>)
       end
 
-      if ebook_format == 'pdf'
-        result << titlepage(node)
-        result << toc(node)
-      end
-
+      result << titlepage(node)
+      result << toc(node)
       result << node.content
 
       result << '</body>'
@@ -179,7 +176,7 @@ MathJax.Hub.Config({
       result * "\n"
     end
 
-    # For ePub only
+    # Generate nav.xhtml for ePub
     def navigation_document(node, spine)
       doctitle_sanitized = ((node.doctitle sanitize: true) || (node.attr 'untitled-label')).gsub WordJoiner, ''
       result = ['<!DOCTYPE html>']
@@ -209,15 +206,16 @@ MathJax.Hub.Config({
       ebook_format = node.document.attr('ebook-format')
       slevel = node.level
       slevel = 1 if slevel == 0 && node.special
+      data_type = data_type_of(node)
       id_attr = node.id ? %( id="#{node.id}") : nil
       class_attr = node.role ? %( class="#{node.role}") : nil
-      epub_type_attr = (EPUB_FORMATS.include?(ebook_format) && node.special) ? %( epub:type="#{node.sectname}") : nil
+      epub_type_attr = EPUB_FORMATS.include?(ebook_format) ? %( epub:type="#{data_type}") : nil
       sectnum = if node.numbered && !node.caption && slevel <= (node.document.attr 'sectnumlevels', 3).to_i && slevel != 0
         node.sectnum
       else
         nil
       end
-      data_type = data_type_of(node)
+
       h_level = if slevel == 0
          1
       elsif slevel == 1
@@ -250,7 +248,7 @@ MathJax.Hub.Config({
       title_element = node.title? ? %(<h1>#{node.title}</h1>\n) : nil
 
       if EPUB_FORMATS.include? ebook_format
-        epub_type = case type
+        epub_type = case node.attr('name')
         when 'tip'
           'help'
         when 'note'
@@ -258,7 +256,7 @@ MathJax.Hub.Config({
         when 'important', 'warning', 'caution'
           'warning'
         end
-        epub_type_attr = %( eput:type=#{epub_type})
+        epub_type_attr = %( epub:type="#{epub_type}")
       end
 
       result = [%(<div data-type="#{name}"#{epub_type_attr}#{id_attr}#{class_attr}>)]
@@ -554,7 +552,9 @@ Your browser does not support the audio tag.
     end
 
     def preamble(node)
-      %(<section data-type="preamble">#{node.content}</section>)
+      ebook_format = node.document.attr('ebook-format')
+      epub_type = EPUB_FORMATS.include?(ebook_format) ? %( epub:type="preamble") : nil
+      %(<section data-type="preamble"#{epub_type}>#{node.content}</section>)
     end
 
     def quote(node)

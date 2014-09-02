@@ -19,6 +19,8 @@ module Persie
       case format
       when 'pdf'
         book.build_pdf(options)
+      when 'epub'
+        book.build_epub(options)
       end
     end
 

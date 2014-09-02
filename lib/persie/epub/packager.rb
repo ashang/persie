@@ -1,7 +1,7 @@
 # Steal from asciidoctor-epub3
 
 require 'gepub'
-require_relative 'core_ext/string'
+require_relative '../core_ext/string'
 autoload :FileUtils, 'fileutils'
 autoload :Open3, 'open3'
 autoload :Shellwords, 'shellwords'
@@ -319,7 +319,7 @@ module Persie
       fmt = @format
       dest = @dest_dir
 
-      images = spine.map {|item| (item.find_by :image) || [] }.flatten
+      images = spine.map {|item| (item.find_by 'image') || [] }.flatten
       usernames = spine.map {|item| item.attr 'username' }.compact.uniq
       # FIXME authors should be aggregated already on parent document
       authors = if doc.attr? 'authors'
