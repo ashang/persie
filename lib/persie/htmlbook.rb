@@ -75,8 +75,10 @@ module Persie
       result << %(<meta name="author" content="#{node.attr 'authors'}"/>) if node.attr? 'authors'
       result << %(<meta name="copyright" content="#{node.attr 'copyright'}"/>) if node.attr? 'copyright'
 
-      # FIXME: stylesheet path for site and epub
-      stylesheet_path = File.join(node.attr('theme-dir'), ebook_format, 'style.css')
+      stylesheet_path = File.join(node.attr('theme-dir'), ebook_format, "#{ebook_format}.css")
+      unless ebook_format == 'pdf'
+        stylesheet_path = File.basename(stylesheet_path)
+      end
       result << %(<link rel="stylesheet" href="#{stylesheet_path}"/>)
 
       # FIXME: cleanup
@@ -115,6 +117,7 @@ MathJax.Hub.Config({
         result << %(<figure data-type="cover"><img src="#{cover_path}"/></figure>)
       end
 
+      result << cover(node)
       result << titlepage(node)
       result << toc(node)
       result << node.content
@@ -165,7 +168,12 @@ MathJax.Hub.Config({
         section_num = (section.numbered && !section.caption && section.level <= sectnumlevels) ? %(#{section.sectnum} ) : nil
         result << %(<li#{data_type_attr}>)
         before_title = caption_before_title_of(section, section_num)
-        result << %(<a href="##{section.id}"><span class="label">#{before_title}</span> #{section.title}</a>)
+        label = if before_title.nil?
+          nil
+        else
+          %(<span class="label">#{before_title}</span> )
+        end
+        result << %(<a href="##{section.id}">#{label}#{section.title}</a>)
         if section.level < toclevels && (child_toc_level = outline section, :toclevels => toclevels, :secnumlevels => sectnumlevels)
           result << child_toc_level
         end
@@ -230,9 +238,15 @@ MathJax.Hub.Config({
       end
 
       result = [%(<#{wrapper_tag} data-type="#{data_type}"#{epub_type_attr}#{id_attr}#{class_attr}>)]
-      before_title = caption_before_title_of(node, sectnum)
 
-      result << %(<h#{h_level}><span class="label">#{before_title}</span> #{node.title}</h#{h_level}>)
+      before_title = caption_before_title_of(node, sectnum)
+      label = if before_title.nil?
+        nil
+      else
+        %(<span class="label">#{before_title}</span> )
+      end
+
+      result << %(<h#{h_level}>#{label}#{node.title}</h#{h_level}>)
       result << node.content
       result << %(</#{wrapper_tag}>)
 
@@ -554,7 +568,12 @@ Your browser does not support the audio tag.
     def preamble(node)
       ebook_format = node.document.attr('ebook-format')
       epub_type = EPUB_FORMATS.include?(ebook_format) ? %( epub:type="preamble") : nil
-      %(<section data-type="preamble"#{epub_type}>#{node.content}</section>)
+      preamble_title = node.document.attr('preamble-title', 'Preamble')
+      result = [%(<section data-type="preamble"#{epub_type}>)]
+      result << %(<h1>#{preamble_title}</h1>)
+      result << node.content
+      result << '</section>'
+      result * "\n"
     end
 
     def quote(node)
@@ -901,6 +920,29 @@ Your browser does not support the video tag.
 
     private
 
+    # Genarate cover page
+    def cover(node)
+      doc = node.document
+      ebook_format = doc.attr('ebook-format')
+      cover_attr = "#{ebook_format}-cover-image"
+      image = File.basename doc.attr(cover_attr, 'cover.png')
+      path = File.join doc.attr('theme-dir'), ebook_format, image
+      result = []
+
+      if File.exist? path
+        result << %(<div data-type="cover">)
+        src = if ebook_format == 'pdf'
+          path
+        else
+          image
+        end
+        result << %(<img src="#{src}" style="max-width:100%"/>)
+        result << %(</div>)
+      end
+
+      result * "\n"
+    end
+
     # Generate table of contents
     def toc(node)
       doc = node.document
@@ -1041,8 +1083,13 @@ Your browser does not support the video tag.
 
       caption_replaced = caption.sub('%NUM%', level_1_num.to_s)
                                 .sub('%SUBNUM%', @nums["#{ctx}"].to_s)
+      label= if caption_replaced.strip.length > 0
+        %(<span class="label">#{caption_replaced}</span> )
+      else
+        nil
+      end
 
-      %(<span class="label">#{caption_replaced}</span> #{node.title})
+      %(#{label}#{node.title})
     end
 
     # Use rouge to highlight source code
