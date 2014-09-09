@@ -1,5 +1,3 @@
-# Steal from asciidoctor-epub3
-
 require 'asciidoctor/extensions'
 
 module Persie

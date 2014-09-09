@@ -4,4 +4,7 @@ $:.unshift File.expand_path('../../lib', __FILE__)
 
 require 'persie'
 
-Persie::Cli.start
+::Persie.ruby_platform_warning
+::Persie.ruby_version_warning
+
+::Persie::Cli.start

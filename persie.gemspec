@@ -27,8 +27,10 @@ Gem::Specification.new do |s|
   s.extra_rdoc_files = %w[README.md LICENSE]
 
   s.add_runtime_dependency('thor',         '0.19.1')
+  s.add_runtime_dependency('uuid',         '2.3.7')
   s.add_runtime_dependency('rouge',        '1.6.2')
   s.add_runtime_dependency('gepub',        '0.6.9.2')
+  s.add_runtime_dependency('colorize',     '0.7.3')
   s.add_runtime_dependency('nokogiri',     '1.6.3.1')
   s.add_runtime_dependency('asciidoctor',  '1.5.0')
 

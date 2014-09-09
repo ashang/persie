@@ -1,0 +1,33 @@
+= Sample Book
+:author: Author Name
+:email: your@email.com
+:translator: Translator Name
+:translator-email: translator@email.com
+:revnumber: 0.0.1
+:revdate: <%= time_now %>
+:lang: en
+:description: Tell me some information about your book.
+:keywords: the, book, keywords
+:uuid: <%= uuid %>
+// Custom labels
+:author-label: {author} 著
+:translator-label: {translator} 译
+:version-label: rev
+// Table of contents
+:toc:
+:toc-title: Table of Contents
+// Custom captions
+:listing-caption: Listing %NUM%-%SUBNUM%.
+:image-caption: Image %NUM%-%SUBNUM%.
+:table-caption: Table %NUM%-%SUBNUM%.
+:caption-append-space:
+:chapter-caption: Chapter %NUM%.
+:appendix-caption: Appendix %NUM%.
+// ePub
+:epub-identifier-scheme: uuid
+
+include::manuscript/preface.adoc[]
+
+include::manuscript/chapter1.adoc[]
+
+include::manuscript/chapter2.adoc[]

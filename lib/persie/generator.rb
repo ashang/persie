@@ -1,4 +1,7 @@
 require 'thor'
+require 'uuid'
+
+require 'time'
 
 module Persie
   class Generator < ::Thor::Group
@@ -10,11 +13,15 @@ module Persie
     end
 
     def copy_master_file
-      copy_file 'book.adoc'
+      template 'book.adoc.erb', 'book.adoc'
     end
 
     def copy_gitignore
-      copy_file 'gitignore', '.gitignore'
+      copy_file 'gitignore.txt', '.gitignore'
+    end
+
+    def copy_gemfile
+      copy_file 'Gemfile.txt', 'Gemfile'
     end
 
     def copy_book_files
@@ -30,8 +37,26 @@ module Persie
       empty_directory 'theme/site'
     end
 
+    def create_build_dir
+      empty_directory 'build'
+    end
+
+    def create_tmp_dir
+      empty_directory 'tmp'
+    end
+
     def create_images_dir
       empty_directory 'images'
+    end
+
+    private
+
+    def uuid
+      UUID.new.generate(:urn)
+    end
+
+    def time_now
+      Time.now.iso8601
     end
 
   end

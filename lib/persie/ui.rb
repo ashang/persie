@@ -1,47 +1,26 @@
-# Most of these codes are stole from bundler.
-
-require 'thor'
+require 'colorize'
 
 module Persie
-  class UI
+  module UI
 
-    attr_accessor :shell
-
-    def initialize
-      ::Thor::Base.shell = ::Thor::Shell::Basic if !STDOUT.tty?
-      @shell = ::Thor::Base.shell.new
+    def self.info(msg, newline=nil)
+      $stdout.puts msg
+      $stdout.puts if newline
     end
 
-    def info(msg, newline = nil)
-      tell_me(msg, nil, newline)
+    def self.confirm(msg, newline=nil)
+      $stdout.puts msg.colorize(:green)
+      $stdout.puts if newline
     end
 
-    def confirm(msg, newline = nil)
-      tell_me(msg, :green, newline)
+    def self.error(msg, newline=nil)
+      $stderr.puts msg.colorize(:red)
+      $stderr.puts if newline
     end
 
-    def warn(msg, newline = nil)
-      tell_me(msg, :yellow, newline)
-    end
-
-    def error(msg, newline = nil)
-      tell_me(msg, :red, newline)
-    end
-
-    def debug(msg, newline = nil)
-      tell_me(msg, nil, newline) if debug?
-    end
-
-    def trace(e, newline = nil)
-      msg = ["#{e.class}: #{e.message}", *e.backtrace].join("\n")
-      tell_me(msg, nil, newline)
-    end
-
-    private
-
-    # valimism
-    def tell_me(msg, color = nil, newline = nil)
-      newline.nil? ? @shell.say(msg, color) : @shell.say(msg, color, newline)
+    def self.warning(msg, newline=nil)
+      $stdout.puts msg.colorize(:yellow)
+      $stdout.puts if newline
     end
 
   end

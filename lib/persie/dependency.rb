@@ -5,6 +5,10 @@ module Persie
       installed? 'prince'
     end
 
+    def self.epubcheck_installed?
+      installed? 'epubcheck'
+    end
+
     def self.kindlegen_installed?
       installed? 'kindlegen'
     end

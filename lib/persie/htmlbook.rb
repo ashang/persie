@@ -28,8 +28,6 @@ module Persie
     }
     QUOTE_TAGS.default = [nil, nil, nil]
 
-    WordJoiner = [65279].pack 'U*'
-
     def initialize(backend, opts={})
       super
 
@@ -61,7 +59,12 @@ module Persie
         result << %(<html xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.w3.org/1999/xhtml" #{lang_attr}>)
       end
       result << %(<head>)
-      result << %(<meta http-equiv="Content-Type" content="text/html;charset=#{node.attr 'encoding', 'UTF-8'}"/>)
+      content_type = if EPUB_FORMATS.include? ebook_format
+        'application/xhtml+xml'
+      else
+        'text/html'
+      end
+      result << %(<meta charset="#{node.attr 'encoding', 'UTF-8'}"/>)
       result << %(<title>#{node.doctitle(:sanitize => true) || node.attr('untitled-label')}</title>)
       if ebook_format === 'site'
         result << %(<meta http-equiv="X-UA-Compatible" content="IE=edge"/>)
@@ -69,10 +72,9 @@ module Persie
       end
       result << %(<meta name="generator" content="Persie #{node.attr 'persie-version'}"/>)
       result << %(<meta name="date" content="#{Time.parse(node.revdate).iso8601}"/>)
-      result << %(<meta name="application-name" content="#{node.attr 'app-name'}"/>) if node.attr? 'app-name'
       result << %(<meta name="description" content="#{node.attr 'description'}"/>) if node.attr? 'description'
       result << %(<meta name="keywords" content="#{node.attr 'keywords'}"/>) if node.attr? 'keywords'
-      result << %(<meta name="author" content="#{node.attr 'authors'}"/>) if node.attr? 'authors'
+      result << %(<meta name="author" content="#{node.attr 'author'}"/>) if node.attr? 'author'
       result << %(<meta name="copyright" content="#{node.attr 'copyright'}"/>) if node.attr? 'copyright'
 
       stylesheet_path = File.join(node.attr('theme-dir'), ebook_format, "#{ebook_format}.css")
@@ -110,6 +112,7 @@ MathJax.Hub.Config({
       body_attrs = []
       body_attrs << %(data-type="book")
       body_attrs << %(id="#{node.id}") if node.id
+      body_attrs << 'class="multiparts"' if node.attr? 'multiparts'
       result << %(<body #{body_attrs * ' '}>)
 
       cover_path = File.join(node.attr('theme-dir'), ebook_format, "#{ebook_format}.png")
@@ -120,7 +123,12 @@ MathJax.Hub.Config({
       result << cover(node)
       result << titlepage(node)
       result << toc(node)
-      result << node.content
+
+      if node.attr? 'is-sample'
+        result << node.sample_content
+      else
+        result << node.content
+      end
 
       result << '</body>'
       result << '</html>'
@@ -155,13 +163,13 @@ MathJax.Hub.Config({
 
     # Generate an outline for use in toc page
     def outline(node, opts = {})
-      return if (sections = node.sections).empty?
+      return if node.sections.empty?
 
       sectnumlevels = opts[:sectnumlevels] || (node.document.attr 'sectnumlevels', 3).to_i
       toclevels = opts[:toclevels] || (node.document.attr 'toclevels', 2).to_i
-      result = []
+      result = ['<ol>']
 
-      result << '<ol>'
+      sections = node.attr?('is-sample') ? node.sample_sections : node.sections
       sections.each do |section|
         data_type = data_type_of(section)
         data_type_attr = %( data-type="#{data_type}")
@@ -184,40 +192,12 @@ MathJax.Hub.Config({
       result * "\n"
     end
 
-    # Generate nav.xhtml for ePub
-    def navigation_document(node, spine)
-      doctitle_sanitized = ((node.doctitle sanitize: true) || (node.attr 'untitled-label')).gsub WordJoiner, ''
-      result = ['<!DOCTYPE html>']
-      result << %(<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="#{lang = (node.attr 'lang', 'en')}" lang="#{lang}">)
-      result << '<head>'
-      result << %(<meta http-equiv="Content-Type" content="text/html;charset=#{node.attr 'encoding', 'UTF-8'}"/>)
-      result << %(<title>#{doctitle_sanitized}</title>)
-      # FIXME: stylesheet path
-      result << '<link rel="stylesheet" type="text/css" href="styles/epub3.css"/>'
-      result << '</head>'
-      result << '<body>'
-      result << '<h1>#{doctitle_sanitized}</h1>'
-      result << %(<nav data-type="toc" epub:type="toc" class="#{doc.attr 'toc-class', 'toc'}">)
-      result << %(<h2>#{node.attr 'toc-title'}</h2>)
-      result << '<ol>'
-      spine.each do |item|
-        result << %(<li><a href="#{item.id || (item.attr 'docname')}.xhtml">#{((item.doctitle sanitize: true) || (item.attr 'untitled-label')).gsub WordJoiner, ''}</a></li>)
-      end
-      result << '</ol>'
-      result << '</nav>'
-      result << '</body>'
-      result << '</html>'
-      result * "\n"
-    end
-
     def section(node)
-      ebook_format = node.document.attr('ebook-format')
       slevel = node.level
       slevel = 1 if slevel == 0 && node.special
       data_type = data_type_of(node)
       id_attr = node.id ? %( id="#{node.id}") : nil
       class_attr = node.role ? %( class="#{node.role}") : nil
-      epub_type_attr = EPUB_FORMATS.include?(ebook_format) ? %( epub:type="#{data_type}") : nil
       sectnum = if node.numbered && !node.caption && slevel <= (node.document.attr 'sectnumlevels', 3).to_i && slevel != 0
         node.sectnum
       else
@@ -237,7 +217,7 @@ MathJax.Hub.Config({
         'div'
       end
 
-      result = [%(<#{wrapper_tag} data-type="#{data_type}"#{epub_type_attr}#{id_attr}#{class_attr}>)]
+      result = [%(<#{wrapper_tag} data-type="#{data_type}"#{id_attr}#{class_attr}>)]
 
       before_title = caption_before_title_of(node, sectnum)
       label = if before_title.nil?
@@ -453,7 +433,7 @@ Your browser does not support the audio tag.
           if linenums
             pre_element = rouge_highlight(node.content, 'plaintext', '', true)
           else
-            pre_element = %(<pre><code class="language-#{language}">#{node.content}<code></pre>)
+            pre_element = %(<pre><code class="language-#{language}">#{node.content}</code></pre>)
           end
         end
       else
@@ -520,7 +500,6 @@ Your browser does not support the audio tag.
       result * "\n"
     end
 
-    # FIXME: not touched, need cleanup
     def open(node)
       if (style = node.style) == 'abstract'
         if node.parent == node.document && node.document.doctype == 'book'
@@ -529,23 +508,23 @@ Your browser does not support the audio tag.
         else
           id_attr = node.id ? %( id="#{node.id}") : nil
           title_el = node.title? ? %(<div class="title">#{node.title}</div>) : nil
-          %(<div#{id_attr} class="quoteblock abstract#{(role = node.role) && " #{role}"}">
-#{title_el}<blockquote>
-#{node.content}
-</blockquote>
-</div>)
+          result = [%(<div#{id_attr} class="quoteblock abstract#{(role = node.role) && " #{role}"}">)]
+          result << title_el
+          result << %(<blockquote>#{node.content}</blockquote>)
+          result << '</div>'
+          result * "\n"
         end
       elsif style == 'partintro' && (node.level != 0 || node.parent.context != :section || node.document.doctype != 'book')
         warn 'asciidoctor: ERROR: partintro block can only be used when doctype is book and it\'s a child of a book part. Excluding block content.'
         ''
       else
-          id_attr = node.id ? %( id="#{node.id}") : nil
-          title_el = node.title? ? %(<div class="title">#{node.title}</div>) : nil
-        %(<div#{id_attr} class="openblock#{style && style != 'open' ? " #{style}" : ''}#{(role = node.role) && " #{role}"}">
-#{title_el}<div class="content">
-#{node.content}
-</div>
-</div>)
+        id_attr = node.id ? %( id="#{node.id}") : nil
+        title_el = node.title? ? %(<div class="title">#{node.title}</div>) : nil
+        result = [%(<div#{id_attr} class="openblock#{style && style != 'open' ? " #{style}" : ''}#{(role = node.role) && " #{role}"}">)]
+        result << title_el
+        result << node.content
+        result << '</div>'
+        result * "\n"
       end
     end
 
@@ -585,7 +564,7 @@ Your browser does not support the audio tag.
       if attribution || citetitle
         cite_element = citetitle ? %(<cite>#{citetitle}</cite>) : nil
         attribution_text = attribution ? %(#{citetitle ? "<br/>\n" : nil}&#8212; #{attribution}) : nil
-        attribution_element = %(\n<p class="attribution">\n#{cite_element}#{attribution_text}\n</p>)
+        attribution_element = %(<p data-type="attribution">#{cite_element}#{attribution_text}</p>)
       else
         attribution_element = nil
       end
@@ -709,7 +688,8 @@ Your browser does not support the audio tag.
           end
         end
       end
-      result << %(<ul#{id_attr} class="#{classes * ' '}">)
+      class_attr = classes.empty? ? nil : %( class="#{classes * ' '}")
+      result << %(<ul#{id_attr}#{class_attr}>)
 
       node.items.each do |item|
         result << '<li>'
@@ -963,27 +943,26 @@ Your browser does not support the video tag.
       result = [%(<section data-type="titlepage">)]
       result << %(<h1>#{node.header.title}</h1>)
       result << %(<h2>#{node.attr :subtitle}</h2>) if node.attr? :subtitle
-      if [node.attr?(:author), node.attr?('translator')].any?
-        result << '<p class="author">'
 
-        if node.attr?(:author)
-          author_text = if node.attr?('author-label')
-            node.attr('author-label')
-          else
-            node.attr :author
-          end
-          result << %(<span data-type="author">#{author_text}</span>)
+      if node.attr? 'author'
+        result << '<p data-type="author">'
+        author_text = if node.attr?('author-label')
+          node.attr('author-label')
+        else
+          node.attr 'author'
         end
+        result << author_text
+        result << '</p>'
+      end
 
-        if node.attr?('translator')
-          translator_text = if node.attr?('translator-label')
-            node.attr('translator-label')
-          else
-            node.attr('translator')
-          end
-          result << %(<br/><span data-type="translator">#{translator_text}</span>)
+      if node.attr? 'translator'
+        result << '<p data-type="translator">'
+        translator_text = if node.attr?('translator-label')
+          node.attr('translator-label')
+        else
+          node.attr('translator')
         end
-
+        result << translator_text
         result << '</p>'
       end
 
@@ -1021,7 +1000,7 @@ Your browser does not support the video tag.
     def data_type_of(node)
       slevel = node.level
       data_type = if slevel == 0
-        node.sectname || 'part'
+        'part'
       elsif slevel == 1
         if node.sectname == 'sect1'
           'chapter'
@@ -1033,7 +1012,7 @@ Your browser does not support the video tag.
       end
     end
 
-    # Genarate auto-numbered caption to titles of chapter, appendix and part
+    # Genarate auto-numbered caption to titles for chapter, appendix, part, etc.
     def caption_before_title_of(node, fallback=nil)
       data_type = data_type_of(node)
 
@@ -1061,7 +1040,8 @@ Your browser does not support the video tag.
 
     # Add auto-numbered lable to images, tables and listings
     def captioned_title_mod_of(node)
-      unless (caption = node.document.attr("#{node.context}-caption"))
+
+      unless (caption = node.document.attr "#{node.context}-caption")
         return node.captioned_title
       end
 
@@ -1084,12 +1064,18 @@ Your browser does not support the video tag.
       caption_replaced = caption.sub('%NUM%', level_1_num.to_s)
                                 .sub('%SUBNUM%', @nums["#{ctx}"].to_s)
       label= if caption_replaced.strip.length > 0
-        %(<span class="label">#{caption_replaced}</span> )
+        %(<span class="label">#{caption_replaced}</span>)
       else
         nil
       end
 
-      %(#{label}#{node.title})
+      space = if node.document.attr? 'caption-append-space'
+        ' '
+      else
+        nil
+      end
+
+      %(#{label}#{space}#{node.title})
     end
 
     # Use rouge to highlight source code

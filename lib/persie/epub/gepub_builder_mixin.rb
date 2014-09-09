@@ -1,6 +1,3 @@
-# Most of the contents are steal from asciidoctor-epub3
-# Shame on me
-
 module Persie
   module GepubBuilderMixin
 
