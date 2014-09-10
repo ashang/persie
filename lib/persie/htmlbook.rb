@@ -1013,17 +1013,19 @@ Your browser does not support the video tag.
     end
 
     # Genarate auto-numbered caption to titles for chapter, appendix, part, etc.
-    def caption_before_title_of(node, fallback=nil)
+    #
+    # QUESTION: Cannot get appendix number from `sectnum'?
+    def caption_before_title_of(node, sectnum)
       data_type = data_type_of(node)
 
       if data_type == 'chapter' && node.document.attr?('chapter-caption')
-        pure_sectnum = node.document.counter('chapter-number', 1).to_s
-        output = node.document.attr('chapter-caption').sub('%NUM%', pure_sectnum)
+        num = sectnum.split('.').first
+        output = node.document.attr('chapter-caption').sub('%NUM%', num)
       elsif data_type == 'appendix' && node.document.attr?('appendix-caption')
-        pure_sectnum = node.document.counter('appendix-number', 'A')
-        output =node.document.attr('appendix-caption').sub('%NUM%', pure_sectnum)
+        num = node.document.counter('appendix-number', 'A').to_s
+        output =node.document.attr('appendix-caption').sub('%NUM%', num)
       else
-        output = fallback
+        output = sectnum
       end
 
       output
