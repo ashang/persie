@@ -32,8 +32,10 @@ module Persie
       (@config ||= {}).update config
     end
   end
+
+  ::Asciidoctor::Extensions.register do
+    include_processor SpineItemProcessor.new(@document)
+  end
 end
 
-::Asciidoctor::Extensions.register do
-  include_processor ::Persie::SpineItemProcessor.new(@document)
-end
+

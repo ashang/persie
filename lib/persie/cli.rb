@@ -1,6 +1,10 @@
 require 'thor'
 require 'colorize'
 
+require_relative 'book'
+require_relative 'version'
+require_relative 'generator'
+
 module Persie
   class Cli < ::Thor
 
@@ -55,6 +59,10 @@ module Persie
         book.build_pdf(options)
       when 'epub'
         book.build_epub(options)
+      when 'mobi'
+        book.build_mobi(options)
+      else
+        $stderr.puts 'Do not support build this formats.'.colorize(:red)
       end
     end
 

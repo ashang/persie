@@ -1,39 +1,34 @@
-require 'asciidoctor'
+require 'nokogiri'
 
-require_relative 'ui'
-require_relative 'dependency'
-require_relative 'asciidoctor_ext/sample'
+require_relative '../builder'
 
 module Persie
-  class PDF
-
-    # Gets the AsciiDoctor::Document object.
-    attr_reader :document
+  class PDF < Builder
 
     def initialize(book, options = {})
-      @book = book
-      @options = options
-      @document = ::Asciidoctor.load_file(@book.master_file, adoc_options)
+      super
     end
 
-    # Builds PDF file.
+    # Builds PDF.
     def build
       UI.info '=== Build PDF ' << '=' * 58
+
+      self.check_dependency
 
       if sample?
         if @document.sample_sections.size == 0
           UI.warning 'Not setting sample, skip!'
-          UI.info '=' * 72
-          exit 11
+          UI.info END_LINE
+          exit 21
         end
         UI.warning 'Sample only', true
       end
 
-      self.check_dependency
       self.convert_to_html
+      self.restart_page_number
       self.convert_to_pdf
 
-      UI.info '=' * 72
+      UI.info END_LINE
 
       nil
     end
@@ -42,8 +37,8 @@ module Persie
     def check_dependency
       unless Dependency.prince_installed?
         UI.error 'Error: PrinceXML not installed'
-        UI.info '=' * 72
-        exit 12
+        UI.info END_LINE
+        exit 22
       end
     end
 
@@ -59,7 +54,7 @@ module Persie
     # Gets PDF file path.
     def pdf_path(relative = false)
       name = sample? ? "#{@book.slug}-sample" : @book.slug
-      path = File.join('build', 'pdf', "#{name}.pdf")
+      path = File.join('builds', 'pdf', "#{name}.pdf")
       return path if relative
 
       File.join(@book.base_dir, path)
@@ -69,57 +64,61 @@ module Persie
     def convert_to_html
       UI.info 'Converting to HTML...'
       html = @document.convert
-      File.open(self.html_path, 'w') do |f|
-        f.puts html
-      end
+      prepare_directory(self.html_path)
+      File.write(self.html_path, html)
       UI.confirm '    HTMl file created'
       UI.info    "    Location: #{self.html_path(true)}", true
+    end
+
+    # Restart PDF page number.
+    def restart_page_number
+      content = File.read(self.html_path)
+      root = ::Nokogiri::HTML(content)
+
+      # Has parts
+      if (parts = root.css('body > div[data-type="part"]')).size > 0
+        add_class(parts.first, 'restart_page_number')
+      # No parts, but has chapters
+      elsif (chapters = root.css('body > section[data-type="chapter"]')).size > 0
+        add_class(chapters.first, 'restart_page_number')
+      end
+
+      File.write(self.html_path, root.to_xhtml)
     end
 
     # Converts HTML to PDF with PrinceXML.
     def convert_to_pdf
       UI.info 'Converting to PDF...'
+      prepare_directory(self.pdf_path)
       system "prince #{self.html_path} -o #{self.pdf_path}"
       if $?.to_i == 0
         UI.confirm '    PDF file created'
         UI.info    "    Location: #{self.pdf_path(true)}"
       else
         UI.error '    Error: Cannot create PDF with PrinceXML'
+        UI.info END_LINE
+        exit 23
       end
     end
 
     private
 
-    # Options passed into AsciiDoctor loader.
-    def adoc_options
+    def adoc_custom_options
       {
-        safe: 1,
-        backend: 'htmlbook',
-        doctype: 'book',
-        outfilesuffix: '.html',
-        header_footer: true,
-        attributes: adoc_attributes
+        outfilesuffix: '.html'
       }
     end
 
-    # Attributes as in AsciiDoctor loader option.
-    def adoc_attributes
-      attrs = {
-        'persie-version' => VERSION,
-        'build-dir' => @book.build_dir,
-        'theme-dir' => @book.theme_dir,
-        'ebook-format' => 'pdf',
-        'imagesdir' => @book.images_dir
+    def adoc_custom_attributes
+      {
+        'ebook-format' => 'pdf'
       }
-
-      attrs['is-sample'] = true if sample?
-
-      attrs
     end
 
-    def sample?
-      return true if @options.has_key? 'sample'
-      false
+    # Add a class to a element.
+    def add_class(el, cls)
+      classes = el['class'].to_s.split(/\s+/)
+      el['class'] = classes.push(cls).uniq.join " "
     end
 
   end

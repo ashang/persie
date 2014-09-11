@@ -30,15 +30,15 @@ module Persie
       copy_file 'chapter2.adoc', 'manuscript/chapter2.adoc'
     end
 
-    def create_theme_dir
-      empty_directory 'theme/pdf'
-      empty_directory 'theme/epub'
-      empty_directory 'theme/mobi'
-      empty_directory 'theme/site'
+    def create_theme_dirs
+      empty_directory 'themes/pdf'
+      empty_directory 'themes/epub'
+      empty_directory 'themes/mobi'
+      empty_directory 'themes/site'
     end
 
     def create_build_dir
-      empty_directory 'build'
+      empty_directory 'builds'
     end
 
     def create_tmp_dir

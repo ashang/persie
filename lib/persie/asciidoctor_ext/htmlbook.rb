@@ -77,7 +77,7 @@ module Persie
       result << %(<meta name="author" content="#{node.attr 'author'}"/>) if node.attr? 'author'
       result << %(<meta name="copyright" content="#{node.attr 'copyright'}"/>) if node.attr? 'copyright'
 
-      stylesheet_path = File.join(node.attr('theme-dir'), ebook_format, "#{ebook_format}.css")
+      stylesheet_path = File.join(node.attr('themes-dir'), ebook_format, "#{ebook_format}.css")
       unless ebook_format == 'pdf'
         stylesheet_path = File.basename(stylesheet_path)
       end
@@ -112,10 +112,9 @@ MathJax.Hub.Config({
       body_attrs = []
       body_attrs << %(data-type="book")
       body_attrs << %(id="#{node.id}") if node.id
-      body_attrs << 'class="multiparts"' if node.attr? 'multiparts'
       result << %(<body #{body_attrs * ' '}>)
 
-      cover_path = File.join(node.attr('theme-dir'), ebook_format, "#{ebook_format}.png")
+      cover_path = File.join(node.attr('themes-dir'), ebook_format, "#{ebook_format}.png")
       if File.exist? cover_path
         result << %(<figure data-type="cover"><img src="#{cover_path}"/></figure>)
       end
@@ -906,7 +905,7 @@ Your browser does not support the video tag.
       ebook_format = doc.attr('ebook-format')
       cover_attr = "#{ebook_format}-cover-image"
       image = File.basename doc.attr(cover_attr, 'cover.png')
-      path = File.join doc.attr('theme-dir'), ebook_format, image
+      path = File.join doc.attr('themes-dir'), ebook_format, image
       result = []
 
       if File.exist? path
