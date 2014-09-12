@@ -33,6 +33,27 @@ module Persie
       false
     end
 
+    def check_sample
+      if sample?
+        if @document.sample_sections.size == 0
+          UI.error 'Not setting sample, terminated!'
+          UI.info END_LINE
+          exit
+        end
+        UI.warning 'Sample only', true
+      end
+    end
+
+    def register_spine_item_processor
+      require_relative 'asciidoctor_ext/spine_item_processor'
+
+      sample = sample?
+      ::Asciidoctor::Extensions.register do
+        include_processor SpineItemProcessor.new(@document, sample)
+      end
+    end
+
+
     # Options passed into AsciiDoctor loader.
     def adoc_options
       {

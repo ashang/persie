@@ -41,6 +41,9 @@ module Persie
     end
 
     desc 'build FORMAT', 'Build a ebook format, including pdf, epub, mobi and site'
+    method_option :debug, aliases: '-d',
+                          type: :boolean,
+                          desc: 'Debug mode'
     method_option :sample, aliases: '-s',
                            type: :boolean,
                            desc: 'Build sample only'

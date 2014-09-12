@@ -15,14 +15,7 @@ module Persie
 
       self.check_dependency
 
-      if sample?
-        if @document.sample_sections.size == 0
-          UI.warning 'Not setting sample, skip!'
-          UI.info END_LINE
-          exit 21
-        end
-        UI.warning 'Sample only', true
-      end
+      check_sample
 
       self.convert_to_html
       self.restart_page_number

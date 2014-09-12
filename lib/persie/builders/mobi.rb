@@ -5,7 +5,6 @@ module Persie
 
     def initialize(book, options = {})
       super
-      @epub_path = File.join(@book.builds_dir, 'epub', "#{@book.slug}.epub")
     end
 
     # Builds mobi.
@@ -13,6 +12,7 @@ module Persie
       UI.info '=== Build mobi ' << '=' * 57
 
       self.check_dependency
+      check_sample
       self.check_epub
       self.generate_mobi
 
@@ -29,8 +29,9 @@ module Persie
 
     # Checks if ePub file generated yet.
     def check_epub
-      unless File.exist? @epub_path
-        UI.error 'Please generate ePub first'
+      unless File.exist? self.epub_path
+        sample = sample? ? 'sample ' : nil
+        UI.error "Please generate #{sample}ePub first"
         UI.info END_LINE
         exit 42
       end
@@ -38,26 +39,41 @@ module Persie
 
     # Generates mobi file.
     def generate_mobi
-      epub = File.basename(@epub_path)
-
-      FileUtils.chdir File.dirname(@epub_path) do
+      FileUtils.chdir File.dirname(self.epub_path) do
         UI.info 'Converting to mobi...'
 
-        system "kindlegen -c2 #{epub}"
-        if $?.to_i == 0
-          UI.confirm '    mobi file created'
-          UI.info    "    Location: #{self.pdf_path(true)}"
-        else
-          UI.error '    Error: Cannot create mobi'
-          # should not exit here, since it would generate mobi in any case,
-          # even there are warnings, like no stylesheet, or no cover.
-        end
+        system "kindlegen -c2 #{self.epub_path(true)}"
 
-        mobi_file = "#{@book.slug}.mobi"
-        mobi_path = File.join(@book.builds_dir, 'mobi', mobi_file)
-        prepare_directory(mobi_path)
-        FileUtils.mv(mobi_file, mobi_path)
+        mobi_file = File.basename(self.mobi_path)
+        if File.exist? mobi_file
+          prepare_directory(self.mobi_path)
+          FileUtils.mv(mobi_file, self.mobi_path)
+
+          UI.confirm '    mobi file created'
+          UI.info    "    Location: #{self.mobi_path(true)}"
+        else
+          UI.error '    Can not create mobi'
+          UI.info END_LINE
+          exit 43
+        end
       end
+    end
+
+    # Gets ePub file path.
+    def epub_path(relative=false)
+      name = sample? ? "#{@book.slug}-sample" : @book.slug
+      return "#{name}.epub" if relative
+
+      File.join(@book.builds_dir, 'epub', "#{name}.epub")
+    end
+
+    # Gets mobi file path.
+    def mobi_path(relative = false)
+      name = sample? ? "#{@book.slug}-sample" : @book.slug
+      path = File.join('builds', 'mobi', "#{name}.mobi")
+      return path if relative
+
+      File.join(@book.base_dir, path)
     end
 
   end

@@ -998,7 +998,7 @@ Your browser does not support the video tag.
     # Find out the data type of a node
     def data_type_of(node)
       slevel = node.level
-      data_type = if slevel == 0
+      if slevel == 0
         'part'
       elsif slevel == 1
         if node.sectname == 'sect1'

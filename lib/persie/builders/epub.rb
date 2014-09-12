@@ -117,6 +117,7 @@ module Persie
     def build
       UI.info '=== Build ePub ' << '=' * 57
 
+      check_sample
       self.convert_to_single_xhtml
       self.generate_spine_items
       self.chunk
@@ -138,7 +139,7 @@ module Persie
 
     # Generates spine items.
     def generate_spine_items
-      require_relative '../asciidoctor_ext/spine_item_processor'
+      register_spine_item_processor
 
       # Re-loading the master file
       doc = ::Asciidoctor.load_file(@book.master_file, adoc_options)
@@ -169,6 +170,10 @@ module Persie
       unless top_level_sections.count == self.spine_items.count
         UI.error '    Count of sections DO NOT equal to spine items count.'
         UI.error '    Terminated!'
+        if @options.debug?
+          UI.info 'sections count: ' + top_level_sections.count
+          UI.info 'spine_items: ' + self.spine_items.inspect
+        end
         UI.info  END_LINE
         exit 31
       end
@@ -281,7 +286,6 @@ module Persie
         add_content
       end
 
-      epub_path = File.join(@build_dir, "#{@book.slug}.epub")
       prepare_directory(self.epub_path)
       builder.generate_epub(self.epub_path)
       UI.confirm '    ePub file created'
@@ -350,13 +354,33 @@ module Persie
       SPECIAL_SPINE_ITEMS.each { |i| spine_items_dup.delete(i) }
 
       top_level_lis = ols.first.css('> li')
-      top_level_lis.each_with_index do |li, i|
-        li.css('a').each do |a|
-          old_href = a['href']
-          a['href'] = "#{spine_items_dup[i]}.xhtml#{old_href}"
+      j = 0
+      top_level_lis.each do |li|
+        if li['data-type'] == 'part'
+          first_a = li.css('> a').first
+          first_a_href = first_a['href']
+          first_a['href'] = "#{spine_items_dup[j]}.xhtml#{first_a_href}"
+          if (li_ols = li.css('> ol')).size > 0
+            li_ol = li_ols.first
+            li_ol.css('> li').each do |lli|
+              j += 1
+              lli.css('a').each do |a|
+                old_href = a['href']
+                a['href'] = "#{spine_items_dup[j]}.xhtml#{old_href}"
+              end
+            end
+            j += 1
+          end
+        else
+          li.css('a').each do |a|
+            old_href = a['href']
+            a['href'] = "#{spine_items_dup[j]}.xhtml#{old_href}"
+          end
+          j += 1
         end
       end
     end
+
 
     # Resolves top level sections.
     #
