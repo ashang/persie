@@ -16,6 +16,10 @@
 
 ![](workflow.png)
 
+## 用法
+
+参见[用户手册](http://andorchen.github.io/persie-manual/)。
+
 ## 作者
 
 [Andor Chen](http://about.ac)
