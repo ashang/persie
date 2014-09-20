@@ -1,5 +1,7 @@
 # persie
 
+[![Dependency Status](https://gemnasium.com/AndorChen/persie.svg)](https://gemnasium.com/AndorChen/persie)
+
 ## 作用
 
 电子书工具链。
