@@ -18,4 +18,12 @@ module Persie
       exit 2
     end
   end
+
+  def self.require_plugins
+    plugins = File.join(Dir.pwd, 'plugins', '*.rb')
+
+    Dir.glob(plugins) do |path|
+      require path
+    end
+  end
 end

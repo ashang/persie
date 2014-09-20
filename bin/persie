@@ -7,4 +7,6 @@ require 'persie'
 ::Persie.ruby_platform_warning
 ::Persie.ruby_version_warning
 
+::Persie.require_plugins
+
 ::Persie::Cli.start

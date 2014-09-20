@@ -33,11 +33,7 @@ module Persie
 
       # These two vars are used to auto-numbering figures, listing, etc
       @reset_num = nil
-      @nums = {
-        'image' => 0,
-        'listing' => 0,
-        'table' => 0
-      }
+      @nums = Hash.new(0)
     end
 
     def convert(node, transform = nil)
@@ -1017,7 +1013,7 @@ Your browser does not support the video tag.
     def caption_before_title_of(node, sectnum)
       data_type = data_type_of(node)
 
-      if data_type == 'chapter' && node.document.attr?('chapter-caption')
+      if !sectnum.nil? && data_type == 'chapter' && node.document.attr?('chapter-caption')
         num = sectnum.split('.').first
         output = node.document.attr('chapter-caption').sub('%NUM%', num)
       elsif data_type == 'appendix' && node.document.attr?('appendix-caption')
@@ -1047,15 +1043,12 @@ Your browser does not support the video tag.
       end
 
       ctx = node.context
+      # FIXME maybe node.parent is not correct
       level_1_num = node.parent.sectnum.split('.', 2).first
       @reset_num ||= level_1_num
 
       if @reset_num != level_1_num
-        @nums = {
-          'image' => 0,
-          'listing' => 0,
-          'table' => 0
-        }
+        @nums.each_key { |k| @nums[k] = 0 }
         @nums["#{ctx}"] += 1
         @reset_num = nil
       else

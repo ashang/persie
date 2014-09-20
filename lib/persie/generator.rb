@@ -49,6 +49,10 @@ module Persie
       empty_directory 'images'
     end
 
+    def create_plugins_dir
+      empty_directory 'plugins'
+    end
+
     private
 
     def uuid
