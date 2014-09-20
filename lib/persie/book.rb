@@ -5,6 +5,7 @@ require 'asciidoctor'
 require_relative 'builders/pdf'
 require_relative 'builders/epub'
 require_relative 'builders/mobi'
+require_relative 'builders/site'
 
 module Persie
   class Book
@@ -50,6 +51,10 @@ module Persie
 
     def build_mobi(options = {})
       Mobi.new(self, options).build
+    end
+
+    def build_site(options = {})
+      Site.new(self, options).build
     end
 
   end

@@ -73,9 +73,13 @@ module Persie
       result << %(<meta name="author" content="#{node.attr 'author'}"/>) if node.attr? 'author'
       result << %(<meta name="copyright" content="#{node.attr 'copyright'}"/>) if node.attr? 'copyright'
 
-      stylesheet_path = File.join(node.attr('themes-dir'), ebook_format, "#{ebook_format}.css")
-      unless ebook_format == 'pdf'
-        stylesheet_path = File.basename(stylesheet_path)
+      stylesheet_path = case ebook_format
+      when 'pdf'
+        File.join(node.attr('themes-dir'), ebook_format, 'pdf.css')
+      when 'site'
+       'style.css'
+      else
+        "#{ebook_format}.css"
       end
       result << %(<link rel="stylesheet" href="#{stylesheet_path}"/>)
 

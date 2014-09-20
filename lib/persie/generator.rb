@@ -34,7 +34,8 @@ module Persie
       empty_directory 'themes/pdf'
       empty_directory 'themes/epub'
       empty_directory 'themes/mobi'
-      empty_directory 'themes/site'
+      empty_directory 'themes/site/single'
+      empty_directory 'themes/site/multiple'
     end
 
     def create_build_dir

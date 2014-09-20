@@ -2,6 +2,7 @@ require 'thor'
 require 'colorize'
 
 require_relative 'book'
+require_relative 'server'
 require_relative 'version'
 require_relative 'generator'
 
@@ -50,6 +51,11 @@ module Persie
     method_option :validate, aliases: '-c',
                              type: :boolean,
                              desc: 'Validate epub with epubcheck'
+    method_option :baseurl, type: :string,
+                            desc: 'Base url for site'
+    method_option :multiple, aliases: '-m',
+                             type: :boolean,
+                             desc: 'Chunk site to multiple pages'
     def build(format)
       unless valid_book?
         $stderr.puts 'Not a valid presie project.'.colorize(:red)
@@ -64,9 +70,21 @@ module Persie
         book.build_epub(options)
       when 'mobi'
         book.build_mobi(options)
+      when 'site'
+        book.build_site(options)
       else
         $stderr.puts 'Do not support build this formats.'.colorize(:red)
       end
+    end
+
+    desc 'preview [FORMAT]', 'Preview site on a local server'
+    def preview(format)
+      unless ['single', 'multiple'].include? format
+        $stderr.puts 'Only supports preview "single" page or "multiple" pages site'.colorize(:red)
+        exit 51
+      end
+
+      Server.start(format)
     end
 
     desc 'version', 'Show the persie version'
