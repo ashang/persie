@@ -773,13 +773,19 @@ Your browser does not support the video tag.
     end
 
     def inline_anchor(node)
+      ebook_format = node.document.attr('ebook-format')
       target = node.target
+
       case node.type
       when :xref
         refid = (node.attr 'refid') || target
         # FIXME seems like text should be prepared already
         text = node.text || (node.document.references[:ids][refid] || %([#{refid}]))
-        %(<a href="#{target}">#{text}</a>)
+        if ebook_format == 'pdf' && target.include?('#')
+          parts = target.split('#', 2)
+          target = parts.last
+        end
+        %(<a href="##{target}">#{text}</a>)
       when :ref
         %(<a id="#{target}"></a>)
       when :link
