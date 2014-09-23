@@ -1,0 +1,4 @@
+== Hi
+
+This is the second chapter of a book with parts.
+

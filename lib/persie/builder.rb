@@ -26,13 +26,6 @@ module Persie
       raise ::NotImplementedError
     end
 
-    private
-
-    def sample?
-      return true if @options.has_key? 'sample'
-      false
-    end
-
     def check_sample
       if sample?
         if @document.sample_sections.size == 0
@@ -42,6 +35,13 @@ module Persie
         end
         UI.warning 'Sample only', true
       end
+    end
+
+    private
+
+    def sample?
+      return true if @options.has_key? 'sample'
+      false
     end
 
     def register_spine_item_processor

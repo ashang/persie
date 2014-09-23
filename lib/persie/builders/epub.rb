@@ -95,6 +95,7 @@ module Persie
 
   class Epub < Builder
 
+    # these are not using `include' directive
     SPECIAL_SPINE_ITEMS = ['cover', 'titlepage', 'nav']
 
     # Gets/Sets spine items.
@@ -108,7 +109,6 @@ module Persie
       @tmp_dir = File.join(book.tmp_dir, 'epub')
       @theme_dir = File.join(book.themes_dir, 'epub')
       @build_dir = File.join(book.builds_dir, 'epub')
-      # these are not using `include' directive
       @spine_items = []
       @spine_item_titles = []
     end
@@ -117,7 +117,7 @@ module Persie
     def build
       UI.info '=== Build ePub ' << '=' * 57
 
-      check_sample
+      self.check_sample
       self.convert_to_single_xhtml
       self.generate_spine_items
       self.chunk

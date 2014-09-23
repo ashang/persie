@@ -1,0 +1,4 @@
+[preface]
+== Preface
+
+This is preface of a book.

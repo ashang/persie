@@ -1,35 +1,39 @@
-= Sample Book
+= A Book with Parts
 :author: Author Name
 :email: your@email.com
 :translator: Translator Name
 :translator-email: translator@email.com
 :revnumber: 0.0.1
-:revdate: <%= time_now %>
+:revdate: 2014-09-22T21:18:11+08:00
 :lang: en
 :description: Tell me some information about your book.
 :keywords: the, book, keywords
-:uuid: <%= uuid %>
-// Custom labels
-:author-label: {author} 著
-:translator-label: {translator} 译
+:uuid: urn:uuid:d34fcb60-2488-0132-e4fc-482a140fb2a7
+:author-label: {author}
+:translator-label: {translator}
 :version-label: rev
-// Table of contents
 :toc:
 :toc-title: Table of Contents
-// Custom captions
 :listing-caption: Listing %NUM%-%SUBNUM%.
 :image-caption: Image %NUM%-%SUBNUM%.
 :table-caption: Table %NUM%-%SUBNUM%.
 :caption-append-space:
 :chapter-caption: Chapter %NUM%.
 :appendix-caption: Appendix %NUM%.
-// ePub
 :epub-identifier-scheme: uuid
 
 include::manuscript/preface.adoc[]
 
 :numbered:
 
+include::manuscript/part1.adoc[]
+
 include::manuscript/chapter1.adoc[]
 
 include::manuscript/chapter2.adoc[]
+
+include::manuscript/part1.adoc[]
+
+include::manuscript/chapter3.adoc[]
+
+include::manuscript/chapter4.adoc[]

@@ -5,6 +5,6 @@ require 'minitest/pride'
 require 'persie'
 
 
-def run_command(cmd)
+def persie_command(cmd)
   `#{::Persie::GEM_ROOT}/bin/persie #{cmd}`.chomp
 end
