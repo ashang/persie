@@ -1,5 +1,8 @@
 require_relative 'persie/cli'
 
+Encoding.default_internal = 'utf-8'
+Encoding.default_external = 'utf-8'
+
 module Persie
   GEM_ROOT      = File.expand_path('../../', __FILE__)
   TEMPLATES_DIR = File.join(GEM_ROOT, 'templates')
