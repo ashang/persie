@@ -411,7 +411,7 @@ Your browser does not support the audio tag.
       id_attr = node.id ? %( id="#{node.id}") : nil
       classes = ['image', node.style, node.role].compact
       class_attr = %( class="#{classes * ' '}")
-      title_element = node.title? ? %(\n<<figcaption>>#{captioned_title_mod_of(node)}</<figcaption>>) : '<figcaption/>'
+      title_element = node.title? ? %(<figcaption>#{captioned_title_mod_of(node)}</figcaption>) : nil
 
       %(<figure#{id_attr}#{class_attr}#{style_attr}>#{img_element}#{title_element}</figure>)
     end
