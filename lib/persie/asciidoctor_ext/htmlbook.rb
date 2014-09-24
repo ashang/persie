@@ -452,7 +452,13 @@ Your browser does not support the audio tag.
     end
 
     def literal(node)
-      %(<pre>#{node.content}</pre>)
+      id_attr = node.id ? %( id="#{node.id}") : nil
+      cls = node.role ? " #{node.role}" : nil
+      output = [%(<div#{id_attr} class="literal#{cls}">)]
+      output << %(<pre>#{node.content}</pre>)
+      output << '</div>'
+
+      output * "\n"
     end
 
     def math(node)
