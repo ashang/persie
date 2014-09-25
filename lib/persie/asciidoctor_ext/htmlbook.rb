@@ -954,6 +954,7 @@ Your browser does not support the video tag.
       result = [%(<section data-type="titlepage">)]
       result << %(<h1>#{node.header.title}</h1>)
       result << %(<h2>#{node.attr :subtitle}</h2>) if node.attr? :subtitle
+      result << %(<p data-type="edition">#{node.attr :edition}</p>) if node.attr? :edition
 
       if node.attr? 'author'
         result << '<p data-type="author">'
