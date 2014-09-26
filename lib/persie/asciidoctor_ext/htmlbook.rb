@@ -613,7 +613,7 @@ Your browser does not support the audio tag.
       style_attribute = styles.size > 0 ? %( style="#{styles * ' '}") : nil
 
       result << %(<table#{id_attribute}#{class_attribute}#{style_attribute}>)
-      result << %(<caption class="title">#{captioned_title_mod_of(node)}</caption>) if node.title?
+      result << %(<caption>#{captioned_title_mod_of(node)}</caption>) if node.title?
       if (node.attr 'rowcount') > 0
         slash = '/'
         result << '<colgroup>'
