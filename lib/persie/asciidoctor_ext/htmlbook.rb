@@ -787,11 +787,11 @@ Your browser does not support the video tag.
         refid = (node.attr 'refid') || target
         # FIXME seems like text should be prepared already
         text = node.text || (node.document.references[:ids][refid] || %([#{refid}]))
-        if ebook_format == 'pdf' && target.include?('#')
+        if ebook_format == 'pdf' && !target.start_with?('#')
           parts = target.split('#', 2)
-          target = parts.last
+          target = "##{parts.last}"
         end
-        %(<a href="##{target}">#{text}</a>)
+        %(<a href="#{target}">#{text}</a>)
       when :ref
         %(<a id="#{target}"></a>)
       when :link
