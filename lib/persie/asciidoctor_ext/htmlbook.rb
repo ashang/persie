@@ -112,6 +112,7 @@ MathJax.Hub.Config({
       body_attrs = []
       body_attrs << %(data-type="book")
       body_attrs << %(id="#{node.id}") if node.id
+      body_attrs << %(class="sample") if node.attr? 'is-sample'
       result << %(<body #{body_attrs * ' '}>)
 
       cover_path = File.join(node.attr('themes-dir'), ebook_format, "#{ebook_format}.png")
