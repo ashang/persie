@@ -28,11 +28,11 @@ Gem::Specification.new do |s|
 
   s.add_runtime_dependency('thor',         '0.19.1')
   s.add_runtime_dependency('uuid',         '2.3.7')
-  s.add_runtime_dependency('rouge',        '1.6.2')
+  s.add_runtime_dependency('rouge',        '1.7.1')
   s.add_runtime_dependency('gepub',        '0.6.9.2')
   s.add_runtime_dependency('colorize',     '0.7.3')
   s.add_runtime_dependency('nokogiri',     '1.6.3.1')
-  s.add_runtime_dependency('asciidoctor',  '1.5.0')
+  s.add_runtime_dependency('asciidoctor',  '1.5.1')
 
   s.add_development_dependency('rake',     '~> 10.3.2')
   s.add_development_dependency('minitest', '~> 5.3.5')
