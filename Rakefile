@@ -3,7 +3,6 @@ $:.unshift(File.join(File.dirname(__FILE__), *%w[lib]))
 require 'rake'
 require 'rdoc'
 require 'date'
-
 require 'persie'
 
 #############################################################################

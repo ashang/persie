@@ -330,16 +330,11 @@ module Persie
 
     private
 
-    def adoc_custom_options
-      {
-        outfilesuffix: '.xhtml'
-      }
-    end
-
     def adoc_custom_attributes
       {
         'imagesdir' => 'images',
-        'ebook-format' => 'epub'
+        'ebook-format' => 'epub',
+        'outfilesuffix' => '.xhtml'
       }
     end
 

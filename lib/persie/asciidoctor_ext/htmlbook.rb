@@ -67,7 +67,7 @@ module Persie
         result << %(<meta name="viewport" content="width=device-width, initial-scale=1.0"/>)
       end
       result << %(<meta name="generator" content="Persie #{node.attr 'persie-version'}"/>)
-      result << %(<meta name="date" content="#{Time.parse(node.revdate).iso8601}"/>)
+      result << %(<meta name="date" content="#{Time.parse(node.revdate).iso8601}"/>) if node.attr? 'revdate'
       result << %(<meta name="description" content="#{node.attr 'description'}"/>) if node.attr? 'description'
       result << %(<meta name="keywords" content="#{node.attr 'keywords'}"/>) if node.attr? 'keywords'
       result << %(<meta name="author" content="#{node.attr 'author'}"/>) if node.attr? 'author'

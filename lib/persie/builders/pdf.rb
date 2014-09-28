@@ -96,15 +96,10 @@ module Persie
 
     private
 
-    def adoc_custom_options
-      {
-        outfilesuffix: '.html'
-      }
-    end
-
     def adoc_custom_attributes
       {
-        'ebook-format' => 'pdf'
+        'ebook-format' => 'pdf',
+        'outfilesuffix' => '.html'
       }
     end
 
