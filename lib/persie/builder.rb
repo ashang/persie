@@ -16,6 +16,7 @@ module Persie
     attr_reader :document
 
     def initialize(book, options = {})
+      @ui = UI.new(options)
       @book = book
       @options = options
       @document = ::Asciidoctor.load_file(@book.master_file, adoc_options)
@@ -29,11 +30,11 @@ module Persie
     def check_sample
       if sample?
         if @document.sample_sections.size == 0
-          UI.error 'Not setting sample, terminated!'
-          UI.info END_LINE
+          @ui.error 'Not setting sample, terminated!'
+          @ui.info END_LINE
           exit
         end
-        UI.warning 'Sample only', true
+        @ui.warning "Sample only\n"
       end
     end
 
@@ -89,12 +90,17 @@ module Persie
       {}
     end
 
-    # Create directory if not exists
+    # Creates directory if not exists.
     def prepare_directory(path)
       dir = File.dirname(path)
       unless File.exist? dir
         FileUtils.mkdir_p dir
       end
+    end
+
+    # Checks if in test mode.
+    def test_mode?
+      @options[:test] === true
     end
 
   end

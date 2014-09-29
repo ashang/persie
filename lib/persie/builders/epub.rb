@@ -115,7 +115,7 @@ module Persie
 
     # Builds ePub.
     def build
-      UI.info '=== Build ePub ' << '=' * 57
+      @ui.info '=== Build ePub ' << '=' * 57
 
       self.check_sample
       self.convert_to_single_xhtml
@@ -124,17 +124,17 @@ module Persie
       self.generate_epub
       self.validate
 
-      UI.info END_LINE
+      @ui.info END_LINE
     end
 
     # Converts to single XHTML file.
     def convert_to_single_xhtml
-      UI.info 'Converting to XHTML...'
+      @ui.info 'Converting to XHTML...'
       xhtml = @document.convert
       prepare_directory(self.xhtml_path)
       File.write(self.xhtml_path, xhtml)
-      UI.confirm '    XHTMl file created'
-      UI.info    "    Location: #{self.xhtml_path(true)}", true
+      @ui.confirm '    XHTMl file created'
+      @ui.info    "    Location: #{self.xhtml_path(true)}\n"
     end
 
     # Generates spine items.
@@ -151,7 +151,7 @@ module Persie
 
     # Chucks single XHTML file to multiple XHTML files.
     def chunk
-      UI.info 'Chunking files...'
+      @ui.info 'Chunking files...'
 
       content = File.read(self.xhtml_path)
       root = ::Nokogiri::HTML(content)
@@ -168,13 +168,13 @@ module Persie
 
       # stupid check, incase of something went wrong
       unless top_level_sections.count == self.spine_items.count
-        UI.error '    Count of sections DO NOT equal to spine items count.'
-        UI.error '    Terminated!'
+        @ui.error '    Count of sections DO NOT equal to spine items count.'
+        @ui.error '    Terminated!'
         if @options.debug?
-          UI.info 'sections count: ' + top_level_sections.count
-          UI.info 'spine_items: ' + self.spine_items.inspect
+          @ui.info 'sections count: ' + top_level_sections.count
+          @ui.info 'spine_items: ' + self.spine_items.inspect
         end
-        UI.info  END_LINE
+        @ui.info  END_LINE
         exit 31
       end
 
@@ -201,7 +201,7 @@ module Persie
         end
       end
 
-      UI.confirm '    Done', true
+      @ui.confirm '    Done\n'
     end
 
     # Generates ePub file.
@@ -214,7 +214,7 @@ module Persie
       spine_items = self.spine_items
       spine_item_titles = self.spine_item_titles
 
-      UI.info 'Building ePub...'
+      @ui.info 'Building ePub...'
 
       builder = ::GEPUB::Builder.new do
         extend GepubBuilderMixin
@@ -288,24 +288,23 @@ module Persie
 
       prepare_directory(self.epub_path)
       builder.generate_epub(self.epub_path)
-      UI.confirm '    ePub file created'
-      UI.info    "    Location: #{self.epub_path(true)}"
+      @ui.confirm '    ePub file created'
+      @ui.info    "    Location: #{self.epub_path(true)}"
     end
 
     # Validates ePub file, optionally.
     def validate
       if @options.validate?
-        UI.info ''
-        UI.info 'Validating...'
+        @ui.info "\nValidating..."
         if Dependency.epubcheck_installed?
           system "epubcheck #{epub_path}"
           if $?.to_i == 0
-            UI.confirm '    PASS'
+            @ui.confirm '    PASS'
           else
-            UI.error '    ERROR'
+            @ui.error '    ERROR'
           end
         else
-          UI.warning '    epubcheck not installed, skip validation'
+          @ui.warning '    epubcheck not installed, skip validation'
         end
       end
     end

@@ -1,5 +1,4 @@
 require_relative 'spec_helper'
-require 'fileutils'
 
 describe 'Cli#new' do
 
