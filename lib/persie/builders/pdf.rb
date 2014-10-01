@@ -59,7 +59,8 @@ module Persie
       prepare_directory(self.html_path)
       File.write(self.html_path, html)
       @ui.confirm '    HTMl file created'
-      @ui.info    "    Location: #{self.html_path(true)}\n"
+      @ui.info    "    Location: #{self.html_path(true)}"
+      @ui.info '' # new line
     end
 
     # Restart PDF page number.
