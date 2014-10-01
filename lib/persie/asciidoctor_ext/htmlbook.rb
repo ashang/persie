@@ -179,7 +179,7 @@ MathJax.Hub.Config({
         label = if before_title.nil?
           nil
         else
-          %(<span class="label">#{before_title}</span> )
+          %(<span class="title-label">#{before_title}</span> )
         end
         result << %(<a href="##{section.id}">#{label}#{section.title}</a>)
         if section.level < toclevels && (child_toc_level = outline section, :toclevels => toclevels, :secnumlevels => sectnumlevels)
@@ -223,7 +223,7 @@ MathJax.Hub.Config({
       label = if before_title.nil?
         nil
       else
-        %(<span class="label">#{before_title}</span> )
+        %(<span class="title-label">#{before_title}</span> )
       end
 
       result << %(<h#{h_level}>#{label}#{node.title}</h#{h_level}>)
@@ -1076,7 +1076,7 @@ Your browser does not support the video tag.
       caption_replaced = caption.sub('%NUM%', level_1_num.to_s)
                                 .sub('%SUBNUM%', @nums["#{ctx}"].to_s)
       label= if caption_replaced.strip.length > 0
-        %(<span class="label">#{caption_replaced}</span>)
+        %(<span class="title-label">#{caption_replaced}</span>)
       else
         nil
       end
