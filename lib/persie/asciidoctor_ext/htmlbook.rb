@@ -115,11 +115,6 @@ MathJax.Hub.Config({
       body_attrs << %(class="sample") if node.attr? 'is-sample'
       result << %(<body #{body_attrs * ' '}>)
 
-      cover_path = File.join(node.attr('themes-dir'), ebook_format, "#{ebook_format}.png")
-      if File.exist? cover_path
-        result << %(<figure data-type="cover"><img src="#{cover_path}"/></figure>)
-      end
-
       result << cover(node)
       result << titlepage(node)
       result << toc(node)
