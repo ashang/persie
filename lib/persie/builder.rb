@@ -20,6 +20,7 @@ module Persie
       @book = book
       @options = options
       @document = ::Asciidoctor.load_file(@book.master_file, adoc_options)
+      @book.slug = @document.attr('slug', File.basename(@book.base_dir))
     end
 
     # Should implement in subclass.

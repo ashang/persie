@@ -28,12 +28,11 @@ module Persie
     # Gets master file path.
     attr_reader :master_file
 
-    # Gets book's slug.
-    attr_reader :slug
+    # Gets/Sets book slug.
+    attr_accessor :slug
 
     def initialize(dir)
       @base_dir    = File.expand_path(dir)
-      @slug        = File.basename(@base_dir)
       @tmp_dir     = File.join(@base_dir, 'tmp')
       @builds_dir  = File.join(@base_dir, 'builds')
       @themes_dir  = File.join(@base_dir, 'themes')
