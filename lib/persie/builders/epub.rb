@@ -70,8 +70,8 @@ module Persie
     end
 
     def add_images
-      resources(workdir: @images_dir) do
-        glob '*.*'
+      resources(workdir: @base_dir) do
+        glob 'images/*.*'
       end
     end
 
@@ -209,7 +209,6 @@ module Persie
       doc = @document
       tmp_dir = @tmp_dir
       theme_dir = @theme_dir
-      images_dir = @book.images_dir
       has_toc = @has_toc
       spine_items = self.spine_items
       spine_item_titles = self.spine_item_titles
@@ -222,7 +221,6 @@ module Persie
         @doc = doc
         @tmp_dir = tmp_dir
         @theme_dir = theme_dir
-        @images_dir = images_dir
         @has_toc = has_toc
         @spine_items = spine_items
         @spine_item_titles = spine_item_titles
