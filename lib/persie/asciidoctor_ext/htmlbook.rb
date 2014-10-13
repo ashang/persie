@@ -125,6 +125,18 @@ MathJax.Hub.Config({
         result << node.content
       end
 
+      # Display footnotes in single page site
+      if single_page_site?(node)
+        if node.footnotes? && !(node.attr? 'nofootnotes')
+          result << "<div class=\"footnotes\">\n<ol>"
+          node.footnotes.each do |fn|
+            ref = %( <a href="#fn-ref-#{fn.index}">&#8617;</a>)
+            result << %(<li data-type="footnote" id="fn-#{fn.index}">#{fn.text}#{ref}</li>)
+          end
+          result << "</ol>\n</div>"
+        end
+      end
+
       result << '</body>'
       result << '</html>'
 
@@ -783,7 +795,7 @@ Your browser does not support the video tag.
         refid = (node.attr 'refid') || target
         # FIXME seems like text should be prepared already
         text = node.text || (node.document.references[:ids][refid] || %([#{refid}]))
-        if ebook_format == 'pdf' && !target.start_with?('#')
+        if (ebook_format == 'pdf' || single_page_site?(node)) && !target.start_with?('#')
           parts = target.split('#', 2)
           target = "##{parts.last}"
         end
@@ -827,7 +839,11 @@ Your browser does not support the video tag.
         %(<a data-type="footnoteref" href="##{node.target}">#{index}</a>)
       else
         id_attr = node.id ? %( id="#{node.id}") : nil
-        %(<span data-type="footnote"#{id_attr}>#{node.text}</span>)
+        if single_page_site?(node)
+          %(<sup><a href="#fn-#{index}" id="fn-ref-#{index}">#{index}</a></sup>)
+        else
+          %(<span data-type="footnote"#{id_attr}>#{node.text}</span>)
+        end
       end
     end
 
@@ -906,6 +922,11 @@ Your browser does not support the video tag.
     end
 
     private
+
+    # Generates single page site or not.
+    def single_page_site?(node)
+      node.document.attr('single-page', false)
+    end
 
     # Genarate cover page
     def cover(node)

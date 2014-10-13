@@ -30,6 +30,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency('uuid',         '2.3.7')
   s.add_runtime_dependency('rouge',        '1.7.1')
   s.add_runtime_dependency('gepub',        '0.6.9.2')
+  s.add_runtime_dependency('liquid',       '2.6.1')
   s.add_runtime_dependency('colorize',     '0.7.3')
   s.add_runtime_dependency('nokogiri',     '1.6.3.1')
   s.add_runtime_dependency('thread_safe',  '0.3.4')

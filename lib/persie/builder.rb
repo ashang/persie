@@ -28,6 +28,7 @@ module Persie
       raise ::NotImplementedError
     end
 
+    # If in sample mode, show an indicator in command line.
     def check_sample
       if sample?
         if @document.sample_sections.size == 0
@@ -41,11 +42,13 @@ module Persie
 
     private
 
+    # Generates sample or not.
     def sample?
       return true if @options.has_key? 'sample'
       false
     end
 
+    # Filts contents, only keep samples if in sample mode.
     def register_spine_item_processor
       require_relative 'asciidoctor_ext/spine_item_processor'
 
@@ -54,7 +57,6 @@ module Persie
         include_processor SpineItemProcessor.new(@document, sample)
       end
     end
-
 
     # Options passed into AsciiDoctor loader.
     def adoc_options
