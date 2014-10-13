@@ -62,11 +62,10 @@ module Persie
       image = @doc.attr('epub-cover-image', 'cover.png')
       image = File.basename(image) # incase you set this a path
 
-      if File.exist? image
-        resources(workdir: @theme_dir) do
-          cover_image image
-        end
+      resources(workdir: @theme_dir) do
+        cover_image image if File.exist? image
       end
+
     end
 
     def add_images
@@ -184,7 +183,11 @@ module Persie
 
       top_level_sections.each_with_index do |node, i|
         # Collect the first h1 heading
-        title = node.css('h1:first-of-type').first.inner_text
+        title = if (i == 0 && @has_cover) # cover page don't have title
+          @document.attr('cover-page-title', 'Cover')
+        else
+          node.css('h1:first-of-type').first.inner_text
+        end
         @spine_item_titles << title
 
         # Footnotes
