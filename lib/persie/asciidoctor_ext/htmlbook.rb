@@ -81,7 +81,7 @@ module Persie
       else
         "#{ebook_format}.css"
       end
-      result << %(<link rel="stylesheet" href="#{stylesheet_path}"/>)
+      result << %(<link rel="stylesheet" type="text/css" href="#{stylesheet_path}"/>)
 
       # FIXME: cleanup
       if node.attr? 'math'
