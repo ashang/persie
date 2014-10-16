@@ -83,7 +83,7 @@ module Persie
         'toc' => toc.to_xhtml,
         'content' => body.to_xhtml,
         'footnotes' => footnotes.to_xhtml,
-        'generator' => "persie ::Persie::VERSION"
+        'generator' => "persie #{::Persie::VERSION}"
       }
 
       attrs.merge(custom)
