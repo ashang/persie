@@ -5,7 +5,9 @@ require 'asciidoctor'
 require_relative 'builders/pdf'
 require_relative 'builders/epub'
 require_relative 'builders/mobi'
-require_relative 'builders/site'
+require_relative 'builders/single_html'
+require_relative 'builders/multiple_htmls'
+
 
 module Persie
   class Book
@@ -52,8 +54,12 @@ module Persie
       Mobi.new(self, options).build
     end
 
-    def build_site(options = {})
-      Site.new(self, options).build
+    def build_single_html(options = {})
+      SingleHTML.new(self, options).build
+    end
+
+    def build_multiple_htmls(options = {})
+      MultipleHTMLs.new(self, options).build
     end
 
   end

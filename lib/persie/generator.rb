@@ -33,7 +33,7 @@ module Persie
     def create_theme_dirs
       empty_directory 'themes/pdf'
       empty_directory 'themes/epub'
-      empty_directory 'themes/site'
+      empty_directory 'themes/html'
     end
 
     def create_build_dir
@@ -43,8 +43,8 @@ module Persie
     def copy_stylesheets
       copy_file 'stylesheets/pdf.css', 'themes/pdf/pdf.css'
       copy_file 'stylesheets/epub.css', 'themes/epub/epub.css'
-      copy_file 'stylesheets/site.css', 'builds/site/single/style.css'
-      copy_file 'stylesheets/site.css', 'builds/site/multiple/style.css'
+      copy_file 'stylesheets/html.css', 'builds/html/single/style.css'
+      copy_file 'stylesheets/html.css', 'builds/html/multiple/style.css'
     end
 
     def create_tmp_dir

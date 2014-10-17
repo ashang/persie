@@ -62,7 +62,7 @@ module Persie
       end
       result << %(<meta charset="#{node.attr 'encoding', 'UTF-8'}"/>)
       result << %(<title>#{node.doctitle(:sanitize => true) || node.attr('untitled-label')}</title>)
-      if ebook_format === 'site'
+      if ebook_format === 'html'
         result << %(<meta http-equiv="X-UA-Compatible" content="IE=edge"/>)
         result << %(<meta name="viewport" content="width=device-width, initial-scale=1.0"/>)
       end
@@ -76,7 +76,7 @@ module Persie
       stylesheet_path = case ebook_format
       when 'pdf'
         File.join(node.attr('themes-dir'), ebook_format, 'pdf.css')
-      when 'site'
+      when 'html'
        'style.css'
       else
         "#{ebook_format}.css"
@@ -125,8 +125,8 @@ MathJax.Hub.Config({
         result << node.content
       end
 
-      # Display footnotes in single page site
-      if single_page_site?(node)
+      # Display footnotes in single page html
+      if single_page_html?(node)
         if node.footnotes? && !(node.attr? 'nofootnotes')
           result << "<div class=\"footnotes\">\n<ol>"
           node.footnotes.each do |fn|
@@ -795,7 +795,7 @@ Your browser does not support the video tag.
         refid = (node.attr 'refid') || target
         # FIXME seems like text should be prepared already
         text = node.text || (node.document.references[:ids][refid] || %([#{refid}]))
-        if (ebook_format == 'pdf' || single_page_site?(node)) && !target.start_with?('#')
+        if (ebook_format == 'pdf' || single_page_html?(node)) && !target.start_with?('#')
           parts = target.split('#', 2)
           target = "##{parts.last}"
         end
@@ -839,7 +839,7 @@ Your browser does not support the video tag.
         %(<a data-type="footnoteref" href="##{node.target}">#{index}</a>)
       else
         id_attr = node.id ? %( id="#{node.id}") : nil
-        if single_page_site?(node)
+        if single_page_html?(node)
           %(<sup><a href="#fn-#{index}" id="fn-ref-#{index}">#{index}</a></sup>)
         else
           %(<span data-type="footnote"#{id_attr}>#{node.text}</span>)
@@ -923,8 +923,8 @@ Your browser does not support the video tag.
 
     private
 
-    # Generates single page site or not.
-    def single_page_site?(node)
+    # Generates single page html or not.
+    def single_page_html?(node)
       node.document.attr('single-page', false)
     end
 

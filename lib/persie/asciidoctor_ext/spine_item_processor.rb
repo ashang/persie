@@ -31,7 +31,10 @@ module Persie
     end
 
     def handles? target
-      (@document.attr('ebook-format') == 'epub') && (::Asciidoctor::ASCIIDOC_EXTENSIONS.include? ::File.extname(target))
+      format = ['epub', 'html'].include? @document.attr('ebook-format')
+      ext = ::Asciidoctor::ASCIIDOC_EXTENSIONS.include? ::File.extname(target)
+
+      format && ext
     end
 
     def update_config config

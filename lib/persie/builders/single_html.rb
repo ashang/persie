@@ -3,43 +3,31 @@ require 'liquid'
 require_relative '../builder'
 
 module Persie
-  class Site < Builder
+  class SingleHTML < Builder
 
     def initialize(book, options = {})
       super
     end
 
-    # Builds a website.
+    # Builds single HTML file.
     def build
-      @ui.info '=== Build site ' << '=' * 57
+      @ui.info '=== Build Single HTML ' << '=' * 50
 
-      if @options.multiple?
-        self.build_multiple
-        return nil
-      end
-
-      self.build_single
+      self.check_sample
+      self.generate_html
 
       @ui.info END_LINE
 
       nil
     end
 
-    def build_multiple
-      @ui.warning "Multiple pages\n"
-
-      @ui.warning 'Not Implemented!'
-    end
-
-    # Builds single file website.
-    def build_single
-      @ui.warning "Single page\n"
-
-      html_path = File.join(@book.builds_dir, 'site', 'single' ,'index.html')
+    # Generates single HTML file.
+    def generate_html
+      html_path = File.join(@book.builds_dir, 'html', 'single' ,'index.html')
       prepare_directory(html_path)
 
       html = @document.convert
-      content = render_layout_of('single', assemble_payloads(html))
+      content = render_layout assemble_payloads(html)
 
       if content.nil?
         File.write(html_path, html)
@@ -48,10 +36,10 @@ module Persie
       end
 
       if File.exist? html_path
-        @ui.confirm 'Site created'
-        @ui.info    "Location: site/single/index.html"
+        @ui.confirm 'HTML created'
+        @ui.info    "Location: builds/html/single/index.html"
       else
-        @ui.error 'Cannot create site'
+        @ui.error 'Cannot create HTML'
         @ui.info END_LINE
         exit 52
       end
@@ -61,8 +49,8 @@ module Persie
 
     def adoc_custom_attributes
       {
-        'ebook-format' => 'site',
-        'single-page' => @options.multiple? ? false : true,
+        'ebook-format' => 'html',
+        'single-page' => true,
         'outfilesuffix' => '.html'
       }
     end
@@ -89,16 +77,9 @@ module Persie
       attrs.merge(custom)
     end
 
-    # Renders ERb layouts of `single' or `multiple'.
-    def render_layout_of(format, payloads)
-      unless ['single', 'multipe'].include? format
-        @ui.error "ONLY can render layout for `single' or `multiple'"
-        @ui.info END_LINE
-        exit 53
-      end
-
-      # Site templates stored in `themes/site/' folder
-      path = File.join @book.themes_dir, 'site', "#{format}.html.liquid"
+    # Renders ERb layouts.
+    def render_layout(payloads)
+      path = File.join @book.themes_dir, 'html', "#{format}.html.liquid"
 
       return nil unless File.exist? path
 

@@ -6,14 +6,14 @@ module Persie
     include WEBrick
 
     def self.start(dir)
-      destination = File.join(Dir.pwd, 'builds', 'site', dir)
+      destination = File.join(Dir.pwd, 'builds', 'html', dir)
 
       # recreate NondisclosureName under utf-8 circumstance
       fh_option = WEBrick::Config::FileHandler
       fh_option[:NondisclosureName] = ['.ht*','~*']
 
       s = HTTPServer.new(
-        :Port => 9527,
+        :Port => 9527, # go to get Qiuxiang
         :BindAddress => '0.0.0.0',
       )
 

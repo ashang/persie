@@ -41,7 +41,7 @@ module Persie
       g.invoke_all
     end
 
-    desc 'build FORMAT', 'Build a ebook format, including pdf, epub, mobi and site'
+    desc 'build FORMAT', 'Build a ebook format, including pdf, epub, mobi and html'
     method_option :debug, aliases: '-d',
                           type: :boolean,
                           desc: 'Debug mode'
@@ -55,7 +55,7 @@ module Persie
                             desc: 'Base url for site'
     method_option :multiple, aliases: '-m',
                              type: :boolean,
-                             desc: 'Chunk site to multiple pages'
+                             desc: 'Chunk HTML to multiple pages'
     def build(format)
       unless valid_book?
         $stderr.puts 'Not a valid presie project.'.colorize(:red)
@@ -70,17 +70,21 @@ module Persie
         book.build_epub(options)
       when 'mobi'
         book.build_mobi(options)
-      when 'site'
-        book.build_site(options)
+      when 'html'
+        if options.multiple?
+          book.build_multiple_htmls(options)
+        else
+          book.build_single_html(options)
+        end
       else
         $stderr.puts 'Do not support build this formats.'.colorize(:red)
       end
     end
 
-    desc 'preview [FORMAT]', 'Preview site on a local server'
+    desc 'preview [FORMAT]', 'Preview HTML on a local server'
     def preview(format)
       unless ['single', 'multiple'].include? format
-        $stderr.puts 'Only supports preview "single" page or "multiple" pages site'.colorize(:red)
+        $stderr.puts 'Only supports preview "single" page or "multiple" pages HTML'.colorize(:red)
         exit 51
       end
 
