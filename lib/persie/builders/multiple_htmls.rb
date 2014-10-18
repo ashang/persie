@@ -1,3 +1,5 @@
+require 'fileutils'
+
 require_relative '../builder'
 require_relative '../chunkable'
 
@@ -20,6 +22,7 @@ module Persie
       self.convert_to_single_html
       self.generate_spine_items
       self.chunk
+      self.copy_images
 
       @ui.info 'Location: builds/html/multiple/'
       @ui.info END_LINE
@@ -27,10 +30,23 @@ module Persie
       nil
     end
 
+    def copy_images
+      images_dir = File.join @book.builds_dir, 'html', 'multiple', 'images'
+
+      # remove previous images first
+      # QUSTION: is this necessary?
+      FileUtils.rm_r(images_dir) if File.directory?(images_dir)
+
+      @ui.info 'Copy images...'
+      FileUtils.cp_r "#{@book.images_dir}/.", images_dir
+      @ui.confirm '    Done'
+    end
+
     private
 
     def adoc_custom_attributes
       {
+        'imagesdir' => 'images',
         'ebook-format' => 'html',
         'multiple-pages' => true,
         'outfilesuffix' => '.html'
