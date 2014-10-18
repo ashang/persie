@@ -233,7 +233,8 @@ module Persie
       result << '<ol>'
       footnotes.each_with_index do |fn, i|
         index = i + 1
-        result << %(<li id="fn-#{index}"#{epub_type}>#{fn.inner_text}</li>)
+        ref = %( <a href="#fn-ref-#{index}">&#8617;</a>)
+        result << %(<li id="fn-#{index}"#{epub_type}>#{fn.inner_text}#{ref}</li>)
       end
       result << '</ol>'
       result << '</div>'
@@ -244,7 +245,7 @@ module Persie
     def replace_footnote_with_sup(footnotes)
       footnotes.each_with_index do |fn, i|
         index = i + 1
-        fn.replace(%(<sup><a href="#fn-#{index}">#{index}</a></sup>))
+        fn.replace(%(<sup><a id="fn-ref-#{index}" href="#fn-#{index}">#{index}</a></sup>))
       end
 
       nil
