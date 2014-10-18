@@ -36,7 +36,7 @@ module Persie
           info END_LINE
           exit
         end
-        warning "Sample only\n"
+        warning "Sample only", true
       end
     end
 

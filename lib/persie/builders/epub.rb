@@ -122,7 +122,7 @@ module Persie
     # Validates ePub file, optionally.
     def validate
       if @options.validate?
-        info "\nValidating..."
+        info "Validating..."
         if Dependency.epubcheck_installed?
           system "epubcheck #{epub_path}"
           if $?.to_i == 0
