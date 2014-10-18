@@ -9,20 +9,20 @@ module Persie
 
     # Builds mobi.
     def build
-      @ui.info '=== Build mobi ' << '=' * 57
+      info '=== Build mobi ' << '=' * 57
 
       self.check_dependency
       check_sample
       self.check_epub
       self.generate_mobi
 
-      @ui.info END_LINE
+      info END_LINE
     end
 
     def check_dependency
       unless Dependency.kindlegen_installed?
-        @ui.error 'kindlegen not installed, termineted!'
-        @ui.info END_LINE
+        error 'kindlegen not installed, termineted!'
+        info END_LINE
         exit 41
       end
     end
@@ -31,8 +31,8 @@ module Persie
     def check_epub
       unless File.exist? self.epub_path
         sample = sample? ? 'sample ' : nil
-        @ui.error "Please generate #{sample}ePub first"
-        @ui.info END_LINE
+        error "Please generate #{sample}ePub first"
+        info END_LINE
         exit 42
       end
     end
@@ -40,7 +40,7 @@ module Persie
     # Generates mobi file.
     def generate_mobi
       FileUtils.chdir File.dirname(self.epub_path) do
-        @ui.info 'Converting to mobi...'
+        info 'Converting to mobi...'
 
         system "kindlegen -c2 #{self.epub_path(true)}"
 
@@ -49,11 +49,11 @@ module Persie
           prepare_directory(self.mobi_path)
           FileUtils.mv(mobi_file, self.mobi_path)
 
-          @ui.confirm '    mobi file created'
-          @ui.info    "    Location: #{self.mobi_path(true)}"
+          confirm '    mobi file created'
+          info    "    Location: #{self.mobi_path(true)}"
         else
-          @ui.error '    Can not create mobi'
-          @ui.info END_LINE
+          error '    Can not create mobi'
+          info END_LINE
           exit 43
         end
       end

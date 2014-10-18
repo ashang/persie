@@ -11,7 +11,7 @@ module Persie
 
     # Builds PDF.
     def build
-      @ui.info '=== Build PDF ' << '=' * 58
+      info '=== Build PDF ' << '=' * 58
 
       self.check_dependency
       self.check_sample
@@ -20,7 +20,7 @@ module Persie
       self.restart_page_number
       self.convert_to_pdf
 
-      @ui.info END_LINE
+      info END_LINE
 
       nil
     end
@@ -28,8 +28,8 @@ module Persie
     # Checks dependency.
     def check_dependency
       unless Dependency.prince_installed?
-        @ui.error 'Error: PrinceXML not installed'
-        @ui.info END_LINE
+        error 'Error: PrinceXML not installed'
+        info END_LINE
         exit 22
       end
     end
@@ -54,13 +54,13 @@ module Persie
 
     # Converts AsciiDoc document to HTML, and writes to a file.
     def convert_to_html
-      @ui.info 'Converting to HTML...'
+      info 'Converting to HTML...'
       html = @document.convert
       prepare_directory(self.html_path)
       File.write(self.html_path, html)
-      @ui.confirm '    HTMl file created'
-      @ui.info    "    Location: #{self.html_path(true)}"
-      @ui.info '' # new line
+      confirm '    HTMl file created'
+      info    "    Location: #{self.html_path(true)}"
+      info '' # new line
     end
 
     # Restart PDF page number.
@@ -81,15 +81,15 @@ module Persie
 
     # Converts HTML to PDF with PrinceXML.
     def convert_to_pdf
-      @ui.info 'Converting to PDF...'
+      info 'Converting to PDF...'
       prepare_directory(self.pdf_path)
       system "prince #{self.html_path} -o #{self.pdf_path}"
       if $?.to_i == 0
-        @ui.confirm '    PDF file created'
-        @ui.info    "    Location: #{self.pdf_path(true)}"
+        confirm '    PDF file created'
+        info    "    Location: #{self.pdf_path(true)}"
       else
-        @ui.error '    Error: Cannot create PDF with PrinceXML'
-        @ui.info END_LINE
+        error '    Error: Cannot create PDF with PrinceXML'
+        info END_LINE
         exit 23
       end
     end

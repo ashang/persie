@@ -14,13 +14,13 @@ module Persie
 
     # Converts to single HTML file.
     def convert_to_single_html
-      @ui.info 'Converting to HTML...'
+      info 'Converting to HTML...'
       format = @document.attr('ebook-format')
       html = @document.convert
       prepare_directory self.html_path(format)
       File.write self.html_path(format), html
-      @ui.confirm '    HTMl file created'
-      @ui.info    "    Location: #{self.html_path(format, true)}\n"
+      confirm '    HTMl file created'
+      info    "    Location: #{self.html_path(format, true)}\n"
     end
 
     # Generates spine items.
@@ -40,7 +40,7 @@ module Persie
 
     # Chucks single HTML file to multiple HTML files.
     def chunk
-      @ui.info 'Chunking files...'
+      info 'Chunking files...'
 
       format = @document.attr('ebook-format')
       content = File.read self.html_path(format)
@@ -58,13 +58,13 @@ module Persie
 
       # stupid check, incase of something went wrong
       unless top_level_sections.count == self.spine_items.count
-        @ui.error '    Count of sections DO NOT equal to spine items count.'
-        @ui.error '    Terminated!'
+        error '    Count of sections DO NOT equal to spine items count.'
+        error '    Terminated!'
         if @options.debug?
-          @ui.info 'sections count: ' + top_level_sections.count
-          @ui.info 'spine_items: ' + self.spine_items.inspect
+          info 'sections count: ' + top_level_sections.count
+          info 'spine_items: ' + self.spine_items.inspect
         end
-        @ui.info  '=' * 72
+        info  '=' * 72
         exit 31
       end
 
@@ -138,7 +138,7 @@ module Persie
         File.write path, chunked_content
       end
 
-      @ui.confirm "    Done"
+      confirm "    Done"
     end
 
     # Gets XHTML file path.

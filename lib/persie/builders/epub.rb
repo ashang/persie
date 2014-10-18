@@ -21,7 +21,7 @@ module Persie
 
     # Builds ePub.
     def build
-      @ui.info '=== Build ePub ' << '=' * 57
+      info '=== Build ePub ' << '=' * 57
 
       self.check_sample
       self.convert_to_single_html
@@ -30,7 +30,7 @@ module Persie
       self.generate_epub
       self.validate
 
-      @ui.info END_LINE
+      info END_LINE
     end
 
     # Generates ePub file.
@@ -42,7 +42,7 @@ module Persie
       spine_items = self.spine_items
       spine_item_titles = self.spine_item_titles
 
-      @ui.info 'Building ePub...'
+      info 'Building ePub...'
 
       builder = ::GEPUB::Builder.new do
         extend GepubBuilderMixin
@@ -115,23 +115,23 @@ module Persie
 
       prepare_directory(self.epub_path)
       builder.generate_epub(self.epub_path)
-      @ui.confirm '    ePub file created'
-      @ui.info    "    Location: #{self.epub_path(true)}"
+      confirm '    ePub file created'
+      info    "    Location: #{self.epub_path(true)}"
     end
 
     # Validates ePub file, optionally.
     def validate
       if @options.validate?
-        @ui.info "\nValidating..."
+        info "\nValidating..."
         if Dependency.epubcheck_installed?
           system "epubcheck #{epub_path}"
           if $?.to_i == 0
-            @ui.confirm '    PASS'
+            confirm '    PASS'
           else
-            @ui.error '    ERROR'
+            error '    ERROR'
           end
         else
-          @ui.warning '    epubcheck not installed, skip validation'
+          warning '    epubcheck not installed, skip validation'
         end
       end
     end

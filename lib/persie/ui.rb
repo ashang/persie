@@ -1,26 +1,26 @@
 require 'colorize'
 
 module Persie
-  class UI
+  module UI
 
-    def initialize(options= {})
-      @test_mode = options.has_key?(:test) && options[:test] === true
+    def info(msg, new_line=nil)
+      $stdout.puts msg
+      $stdout.puts if new_line
     end
 
-    def info(msg)
-      $stdout.puts msg unless @test_mode
+    def confirm(msg, new_line=nil)
+      $stdout.puts msg.colorize(:green)
+      $stdout.puts if new_line
     end
 
-    def confirm(msg)
-      $stdout.puts msg.colorize(:green) unless @test_mode
+    def error(msg, new_line=nil)
+      $stderr.puts msg.colorize(:red)
+      $stderr.puts if new_line
     end
 
-    def error(msg)
-      $stderr.puts msg.colorize(:red) unless @test_mode
-    end
-
-    def warning(msg)
-      $stdout.puts msg.colorize(:yellow) unless @test_mode
+    def warning(msg, new_line=nil)
+      $stdout.puts msg.colorize(:yellow)
+      $stdout.puts if new_line
     end
 
   end

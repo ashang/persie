@@ -9,6 +9,7 @@ require_relative 'asciidoctor_ext/sample'
 
 module Persie
   class Builder
+    include UI
 
     END_LINE = '=' * 72
 
@@ -16,7 +17,6 @@ module Persie
     attr_reader :document
 
     def initialize(book, options = {})
-      @ui = UI.new(options)
       @book = book
       @options = options
       @document = ::Asciidoctor.load_file(@book.master_file, adoc_options)
@@ -32,11 +32,11 @@ module Persie
     def check_sample
       if sample?
         if @document.sample_sections.size == 0
-          @ui.error 'Not setting sample, terminated!'
-          @ui.info END_LINE
+          error 'Not setting sample, terminated!'
+          info END_LINE
           exit
         end
-        @ui.warning "Sample only\n"
+        warning "Sample only\n"
       end
     end
 

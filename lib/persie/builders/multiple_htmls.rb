@@ -16,7 +16,7 @@ module Persie
 
     # Builds multiple HTML files.
     def build
-      @ui.info '=== Build Mutiple HTML ' << '=' * 49
+      info '=== Build Mutiple HTML ' << '=' * 49
 
       self.check_sample
       self.convert_to_single_html
@@ -24,8 +24,8 @@ module Persie
       self.chunk
       self.copy_images
 
-      @ui.info 'Location: builds/html/multiple/'
-      @ui.info END_LINE
+      info 'Location: builds/html/multiple/'
+      info END_LINE
 
       nil
     end
@@ -37,9 +37,9 @@ module Persie
       # QUSTION: is this necessary?
       FileUtils.rm_r(images_dir) if File.directory?(images_dir)
 
-      @ui.info 'Copy images...'
+      info 'Copy images...'
       FileUtils.cp_r "#{@book.images_dir}/.", images_dir
-      @ui.confirm '    Done'
+      confirm '    Done'
     end
 
     private
@@ -67,8 +67,8 @@ module Persie
     # Renders ERb layouts of `single' or `multiple'.
     def render_layout_of(format, payloads)
       unless ['single', 'multipe'].include? format
-        @ui.error "ONLY can render layout for `single' or `multiple'"
-        @ui.info END_LINE
+        error "ONLY can render layout for `single' or `multiple'"
+        info END_LINE
         exit 53
       end
 

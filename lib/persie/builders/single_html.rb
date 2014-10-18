@@ -11,12 +11,12 @@ module Persie
 
     # Builds single HTML file.
     def build
-      @ui.info '=== Build Single HTML ' << '=' * 50
+      info '=== Build Single HTML ' << '=' * 50
 
       self.check_sample
       self.generate_html
 
-      @ui.info END_LINE
+      info END_LINE
 
       nil
     end
@@ -36,11 +36,11 @@ module Persie
       end
 
       if File.exist? html_path
-        @ui.confirm 'HTML created'
-        @ui.info    "Location: builds/html/single/index.html"
+        confirm 'HTML created'
+        info    "Location: builds/html/single/index.html"
       else
-        @ui.error 'Cannot create HTML'
-        @ui.info END_LINE
+        error 'Cannot create HTML'
+        info END_LINE
         exit 52
       end
     end
