@@ -6,17 +6,21 @@ describe 'Cli#build(pdf)' do
     FileUtils.cd(A_BOOK_PATH) do
       persie_command 'build pdf'
       path = 'builds/pdf/a-book.pdf'
-      expect(File.exist?(path)).to be true
+
+      expect(path).to be_exists
+
       FileUtils.remove_dir('tmp/pdf')
       FileUtils.remove_dir('builds/pdf')
     end
   end
 
-  it 'generates a sample pdf file' do
+  it 'generates a sample pdf file when setting -s flag' do
     FileUtils.cd(A_BOOK_PATH) do
       persie_command 'build pdf -s'
       path = 'builds/pdf/a-book-sample.pdf'
-      expect(File.exist?(path)).to be true
+
+      expect(path).to be_exists
+
       FileUtils.remove_dir('tmp/pdf')
       FileUtils.remove_dir('builds/pdf')
     end
