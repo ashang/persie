@@ -32,6 +32,9 @@ module Persie
       @spine_items.concat SPECIAL_SPINE_ITEMS
       @spine_items.concat doc.references['spine_items']
 
+      # no need cover page and titlepage in HTML format
+      @spine_items.shift(2) if @document.attr('ebook-format') == 'html'
+
       @spine_items
     end
 
@@ -61,7 +64,7 @@ module Persie
           @ui.info 'sections count: ' + top_level_sections.count
           @ui.info 'spine_items: ' + self.spine_items.inspect
         end
-        @ui.info  END_LINE
+        @ui.info  '=' * 72
         exit 31
       end
 

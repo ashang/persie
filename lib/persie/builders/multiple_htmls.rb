@@ -32,6 +32,7 @@ module Persie
     def adoc_custom_attributes
       {
         'ebook-format' => 'html',
+        'multiple-pages' => true,
         'outfilesuffix' => '.html'
       }
     end

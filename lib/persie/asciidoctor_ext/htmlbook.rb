@@ -115,8 +115,8 @@ MathJax.Hub.Config({
       body_attrs << %(class="sample") if node.attr? 'is-sample'
       result << %(<body #{body_attrs * ' '}>)
 
-      result << cover(node)
-      result << titlepage(node)
+      result << cover(node)      unless multiple_pages_html?(node)
+      result << titlepage(node)  unless multiple_pages_html?(node)
       result << toc(node)
 
       if node.attr? 'is-sample'
@@ -926,6 +926,11 @@ Your browser does not support the video tag.
     # Generates single page html or not.
     def single_page_html?(node)
       node.document.attr('single-page', false)
+    end
+
+    # Generates multiple pages html or not.
+    def multiple_pages_html?(node)
+      node.document.attr('multiple-pages', false)
     end
 
     # Genarate cover page
