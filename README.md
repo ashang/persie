@@ -1,6 +1,7 @@
 # persie
 
 [![Dependency Status](https://gemnasium.com/AndorChen/persie.svg)](https://gemnasium.com/AndorChen/persie)
+[![Gem Version](https://badge.fury.io/rb/persie.svg)](http://badge.fury.io/rb/persie)
 
 ## 作用
 
