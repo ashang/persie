@@ -45,8 +45,8 @@ module Persie
       # In this method, node == node.document
       # In other methods, you should use node.document
       ebook_format = node.attr('ebook-format')
-      result = []
 
+      result = []
       result << '<!DOCTYPE html>'
       lang_attr = %(lang="#{node.attr('lang', 'en')}")
       if EPUB_FORMATS.include? ebook_format
@@ -54,28 +54,24 @@ module Persie
       else
         result << %(<html xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.w3.org/1999/xhtml" #{lang_attr}>)
       end
-      result << %(<head>)
-      content_type = if EPUB_FORMATS.include? ebook_format
-        'application/xhtml+xml'
-      else
-        'text/html'
-      end
-      result << %(<meta charset="#{node.attr 'encoding', 'UTF-8'}"/>)
+      result << '<head>'
+      result << %(<meta charset="#{node.attr('encoding', 'UTF-8')}"/>)
       result << %(<title>#{node.doctitle(:sanitize => true) || node.attr('untitled-label')}</title>)
       if ebook_format === 'html'
         result << %(<meta http-equiv="X-UA-Compatible" content="IE=edge"/>)
         result << %(<meta name="viewport" content="width=device-width, initial-scale=1.0"/>)
       end
-      result << %(<meta name="generator" content="Persie #{node.attr 'persie-version'}"/>)
+      result << %(<meta name="generator" content="persie #{node.attr 'persie-version'}"/>)
       result << %(<meta name="date" content="#{Time.parse(node.revdate).iso8601}"/>) if node.attr? 'revdate'
       result << %(<meta name="description" content="#{node.attr 'description'}"/>) if node.attr? 'description'
       result << %(<meta name="keywords" content="#{node.attr 'keywords'}"/>) if node.attr? 'keywords'
       result << %(<meta name="author" content="#{node.attr 'author'}"/>) if node.attr? 'author'
+      result << %(<meta name="translator" content="#{node.attr 'translator'}"/>) if node.attr? 'translator'
       result << %(<meta name="copyright" content="#{node.attr 'copyright'}"/>) if node.attr? 'copyright'
 
       stylesheet_path = case ebook_format
       when 'pdf'
-        File.join(node.attr('themes-dir'), ebook_format, 'pdf.css')
+        File.join(node.attr('themes-dir'), 'pdf', 'pdf.css')
       when 'html'
        'style.css'
       else
@@ -128,7 +124,7 @@ MathJax.Hub.Config({
       # Display footnotes in single page html
       if single_page_html?(node)
         if node.footnotes? && !(node.attr? 'nofootnotes')
-          result << "<div class=\"footnotes\">\n<ol>"
+          result << %(<div class="footnotes">\n<ol>)
           node.footnotes.each do |fn|
             ref = %( <a href="#fn-ref-#{fn.index}">&#8617;</a>)
             result << %(<li data-type="footnote" id="fn-#{fn.index}">#{fn.text}#{ref}</li>)
@@ -143,7 +139,6 @@ MathJax.Hub.Config({
       result * "\n"
     end
 
-    # FIXME: need review
     def embedded(node)
       result = []
       if !node.notitle && node.has_header?
@@ -154,15 +149,11 @@ MathJax.Hub.Config({
       result << node.content
 
       if node.footnotes? && !(node.attr? 'nofootnotes')
-        result << %(<div id="footnotes">
-<hr/>)
+        result << %(<div class="footnotes">\n<ol>)
         node.footnotes.each do |footnote|
-          result << %(<div class="footnote" id="_footnote_#{footnote.index}">
-<a href="#_footnoteref_#{footnote.index}">#{footnote.index}</a> #{footnote.text}
-</div>)
+          result << %(<li data-type="footnote" id="fn-#{footnote.index}">#{footnote.text}</li>)
         end
-
-        result << '</div>'
+        result << "</ol>\n</div>"
       end
 
       result * "\n"
@@ -218,6 +209,7 @@ MathJax.Hub.Config({
       else
         slevel - 1
       end
+
       wrapper_tag = if data_type != 'part'
         'section'
       else
@@ -268,20 +260,26 @@ MathJax.Hub.Config({
       result * "\n"
     end
 
-    # fixme: not touched, need cleanup
     def audio(node)
       xml = node.document.attr? 'htmlsyntax', 'xml'
       id_attribute = node.id ? %( id="#{node.id}") : nil
       classes = ['audioblock', node.style, node.role].compact
       class_attribute = %( class="#{classes * ' '}")
       title_element = node.title? ? %(<div class="title">#{node.captioned_title}</div>\n) : nil
-      %(<div#{id_attribute}#{class_attribute}>
-#{title_element}<div class="content">
-<audio src="#{node.media_uri(node.attr 'target')}"#{(node.option? 'autoplay') ? (append_boolean_attribute 'autoplay', xml) : nil}#{(node.option? 'nocontrols') ? nil : (append_boolean_attribute 'controls', xml)}#{(node.option? 'loop') ? (append_boolean_attribute 'loop', xml) : nil}>
-Your browser does not support the audio tag.
-</audio>
-</div>
-</div>)
+
+      result = [%(<div#{id_attribute}#{class_attribute}>)]
+      result << title_element
+      result << '<div class="content">'
+
+      autoplay = node.option?('autoplay') ? append_boolean_attribute('autoplay', xml) : nil
+      controls = node.option?('nocontrols') ? nil : append_boolean_attribute('controls', xml)
+      looop    = node.option?('loop') ? append_boolean_attribute('loop', xml) : nil
+
+      result << %(<audio src="#{node.media_uri(node.attr 'target')}"#{autoplay}#{controls}#{looop}>)
+      result << 'Your browser does not support the audio tag.'
+      result << %(</audio>\n</div>\n</div>)
+
+      result * "\n"
     end
 
     def colist(node)
@@ -293,13 +291,12 @@ Your browser does not support the audio tag.
       start_attr = node.attr?('start') ? %( start="#{node.attr('start')}") : nil
 
       result << %(<dl#{id_attr}#{class_attr}#{start_attr}>)
-
       node.items.each_with_index do |item, i|
         result << %(<dt>#{digits[i]}</dt>)
         result << %(<dd><p>#{item.text}</p>#{item.block? ? item.content : nil}</dd>)
       end
-
       result << '</dl>'
+
       result * "\n"
     end
 
@@ -393,7 +390,6 @@ Your browser does not support the audio tag.
       %(<div data-type="example"#{id_attr}#{class_attr}>#{title_element}#{node.content}</div>)
     end
 
-    # FIXME: not touched, need cleanup
     def floating_title(node)
       tag_name = %(h#{node.level + 1})
       id_attribute = node.id ? %( id="#{node.id}") : nil
@@ -402,15 +398,15 @@ Your browser does not support the audio tag.
     end
 
     def image(node)
-      align = (node.attr? 'align') ? (node.attr 'align') : nil
-      float = (node.attr? 'float') ? (node.attr 'float') : nil
+      align = node.attr?('align') ? node.attr('align') : nil
+      float = node.attr?('float') ? node.attr('float') : nil
       style_attr = if align || float
         styles = [align ? %(text-align: #{align}) : nil, float ? %(float: #{float}) : nil].compact
         %( style="#{styles * ';'}")
       end
 
-      width_attr = (node.attr? 'width') ? %( width="#{node.attr 'width'}") : nil
-      height_attr = (node.attr? 'height') ? %( height="#{node.attr 'height'}") : nil
+      width_attr  = node.attr?('width') ? %( width="#{node.attr 'width'}") : nil
+      height_attr = node.attr?('height') ? %( height="#{node.attr 'height'}") : nil
 
       img_element = %(<img src="#{node.image_uri node.attr('target')}" alt="#{node.attr 'alt'}"#{width_attr}#{height_attr}/>)
       if (link = node.attr 'link')
@@ -462,11 +458,11 @@ Your browser does not support the audio tag.
     def literal(node)
       id_attr = node.id ? %( id="#{node.id}") : nil
       cls = node.role ? " #{node.role}" : nil
-      output = [%(<div#{id_attr} class="literal#{cls}">)]
-      output << %(<pre>#{node.content}</pre>)
-      output << '</div>'
+      result = [%(<div#{id_attr} class="literal#{cls}">)]
+      result << %(<pre>#{node.content}</pre>)
+      result << '</div>'
 
-      output * "\n"
+      result * "\n"
     end
 
     def math(node)
@@ -474,7 +470,7 @@ Your browser does not support the audio tag.
       class_attr = node.role ? %( class="#{node.role}") : nil
       title_element = node.title? ? %(<h5>#{node.title}</h5>\n) : nil
       open, close = ::Asciidoctor::BLOCK_MATH_DELIMITERS[node.style.to_sym]
-      # QUESTION should the content be stripped already?
+
       equation = node.content.strip
       if node.subs.nil_or_empty? && !(node.attr? 'subs')
         equation = node.sub_specialcharacters equation
@@ -741,15 +737,15 @@ Your browser does not support the audio tag.
       result * "\n"
     end
 
-    # FIXME: not touched, need cleanup
     def video(node)
       xml = node.document.attr? 'htmlsyntax', 'xml'
       id_attribute = node.id ? %( id="#{node.id}") : nil
       classes = ['videoblock', node.style, node.role].compact
       class_attribute = %( class="#{classes * ' '}")
       title_element = node.title? ? %(\n<div class="title">#{node.captioned_title}</div>) : nil
-      width_attribute = (node.attr? 'width') ? %( width="#{node.attr 'width'}") : nil
-      height_attribute = (node.attr? 'height') ? %( height="#{node.attr 'height'}") : nil
+      width_attribute = node.attr?('width') ? %( width="#{node.attr 'width'}") : nil
+      height_attribute = node.attr?('height') ? %( height="#{node.attr 'height'}") : nil
+
       case node.attr 'poster'
       when 'vimeo'
         start_anchor = (node.attr? 'start') ? "#at=#{node.attr 'start'}" : nil
@@ -757,32 +753,36 @@ Your browser does not support the audio tag.
         autoplay_param = (node.option? 'autoplay') ? "#{delimiter}autoplay=1" : nil
         delimiter = '&amp;' if autoplay_param
         loop_param = (node.option? 'loop') ? "#{delimiter}loop=1" : nil
-        %(<div#{id_attribute}#{class_attribute}>#{title_element}
-<div class="content">
-<iframe#{width_attribute}#{height_attribute} src="//player.vimeo.com/video/#{node.attr 'target'}#{start_anchor}#{autoplay_param}#{loop_param}" frameborder="0"#{append_boolean_attribute 'webkitAllowFullScreen', xml}#{append_boolean_attribute 'mozallowfullscreen', xml}#{append_boolean_attribute 'allowFullScreen', xml}></iframe>
-</div>
-</div>)
+
+        result = %(<div#{id_attribute}#{class_attribute}>)
+        result << title_element
+        result << '<div class="content">'
+        result << %(<iframe#{width_attribute}#{height_attribute} src="//player.vimeo.com/video/#{node.attr 'target'}#{start_anchor}#{autoplay_param}#{loop_param}" frameborder="0"#{append_boolean_attribute 'webkitAllowFullScreen', xml}#{append_boolean_attribute 'mozallowfullscreen', xml}#{append_boolean_attribute 'allowFullScreen', xml}></iframe>)
+        result << %(</div>\n</div>)
+        result * "\n"
       when 'youtube'
-        start_param = (node.attr? 'start') ? "&amp;start=#{node.attr 'start'}" : nil
-        end_param = (node.attr? 'end') ? "&amp;end=#{node.attr 'end'}" : nil
-        autoplay_param = (node.option? 'autoplay') ? '&amp;autoplay=1' : nil
-        loop_param = (node.option? 'loop') ? '&amp;loop=1' : nil
-        controls_param = (node.option? 'nocontrols') ? '&amp;controls=0' : nil
-        %(<div#{id_attribute}#{class_attribute}>#{title_element}
-<div class="content">
-<iframe#{width_attribute}#{height_attribute} src="//www.youtube.com/embed/#{node.attr 'target'}?rel=0#{start_param}#{end_param}#{autoplay_param}#{loop_param}#{controls_param}" frameborder="0"#{(node.option? 'nofullscreen') ? nil : (append_boolean_attribute 'allowfullscreen', xml)}></iframe>
-</div>
-</div>)
+        start_param = node.attr?('start') ? "&amp;start=#{node.attr 'start'}" : nil
+        end_param = node.attr?('end') ? "&amp;end=#{node.attr 'end'}" : nil
+        autoplay_param = node.option?('autoplay') ? '&amp;autoplay=1' : nil
+        loop_param = node.option?('loop') ? '&amp;loop=1' : nil
+        controls_param = node.option?('nocontrols') ? '&amp;controls=0' : nil
+
+        result = %(<div#{id_attribute}#{class_attribute}>)
+        result << title_element
+        result << '<div class="content">'
+        result << %(<iframe#{width_attribute}#{height_attribute} src="//www.youtube.com/embed/#{node.attr 'target'}?rel=0#{start_param}#{end_param}#{autoplay_param}#{loop_param}#{controls_param}" frameborder="0"#{(node.option? 'nofullscreen') ? nil : (append_boolean_attribute 'allowfullscreen', xml)}></iframe>)
+        result << %(</div>\n</div>)
+        result * "\n"
       else
         poster_attribute = %(#{poster = node.attr 'poster'}).empty? ? nil : %( poster="#{node.media_uri poster}")
         time_anchor = ((node.attr? 'start') || (node.attr? 'end')) ? %(#t=#{node.attr 'start'}#{(node.attr? 'end') ? ',' : nil}#{node.attr 'end'}) : nil
-        %(<div#{id_attribute}#{class_attribute}>#{title_element}
-<div class="content">
-<video src="#{node.media_uri(node.attr 'target')}#{time_anchor}"#{width_attribute}#{height_attribute}#{poster_attribute}#{(node.option? 'autoplay') ? (append_boolean_attribute 'autoplay', xml) : nil}#{(node.option? 'nocontrols') ? nil : (append_boolean_attribute 'controls', xml)}#{(node.option? 'loop') ? (append_boolean_attribute 'loop', xml) : nil}>
-Your browser does not support the video tag.
-</video>
-</div>
-</div>)
+        result = %(<div#{id_attribute}#{class_attribute}>)
+        result << title_element
+        result << '<div class="content">'
+        result << %(<video src="#{node.media_uri(node.attr 'target')}#{time_anchor}"#{width_attribute}#{height_attribute}#{poster_attribute}#{(node.option? 'autoplay') ? (append_boolean_attribute 'autoplay', xml) : nil}#{(node.option? 'nocontrols') ? nil : (append_boolean_attribute 'controls', xml)}#{(node.option? 'loop') ? (append_boolean_attribute 'loop', xml) : nil}>)
+        result << 'Your browser does not support the video tag.'
+        result << %(</video>\m</div>\n</div>)
+        result * "\n"
       end
     end
 
@@ -792,8 +792,7 @@ Your browser does not support the video tag.
 
       case node.type
       when :xref
-        refid = (node.attr 'refid') || target
-        # FIXME seems like text should be prepared already
+        refid = node.attr('refid') || target
         text = node.text || (node.document.references[:ids][refid] || %([#{refid}]))
         if (ebook_format == 'pdf' || single_page_html?(node)) && !target.start_with?('#')
           parts = target.split('#', 2)
@@ -893,7 +892,7 @@ Your browser does not support the video tag.
       if (keys = node.attr 'keys').size == 1
         %(<kbd>#{keys[0]}</kbd>)
       else
-        key_combo = keys.map {|key| %(<kbd>#{key}</kbd>+) }.join.chop
+        key_combo = keys.map { |key| %(<kbd>#{key}</kbd>-) }.join.chop
         %(<span class="keyseq">#{key_combo}</span>)
       end
     end
@@ -971,7 +970,7 @@ Your browser does not support the video tag.
       result * "\n"
     end
 
-    # Generate a title page for PDF format
+    # Generate a title page
     def titlepage(node)
       result = [%(<section data-type="titlepage">)]
       result << %(<h1>#{node.header.title}</h1>)
@@ -1025,7 +1024,6 @@ Your browser does not support the video tag.
       result * "\n"
     end
 
-    # FIXME: after cleanup, delete this
     def append_boolean_attribute(name, xml)
       xml ? %( #{name}="#{name}") : %( #{name})
     end
