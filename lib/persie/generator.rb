@@ -21,7 +21,7 @@ module Persie
     end
 
     def copy_gemfile
-      copy_file 'Gemfile.txt', 'Gemfile'
+      template 'Gemfile.erb', 'Gemfile'
     end
 
     def copy_book_files
@@ -63,6 +63,10 @@ module Persie
 
     def time_now
       Time.now.iso8601
+    end
+
+    def version
+      VERSION
     end
 
   end
