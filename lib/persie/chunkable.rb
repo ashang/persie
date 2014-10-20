@@ -234,7 +234,7 @@ module Persie
       footnotes.each_with_index do |fn, i|
         index = i + 1
         ref = %( <a href="#fn-ref-#{index}">&#8617;</a>)
-        result << %(<li id="fn-#{index}"#{epub_type}>#{fn.inner_text}#{ref}</li>)
+        result << %(<li id="fn-#{index}"#{epub_type}>#{fn.inner_html}#{ref}</li>)
       end
       result << '</ol>'
       result << '</div>'
