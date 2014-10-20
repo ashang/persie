@@ -18,11 +18,13 @@ module Persie
     def build
       info '=== Build Mutiple HTML ' << '=' * 49
 
+      self.before_build
       self.check_sample
       self.convert_to_single_html
       self.generate_spine_items
       self.chunk
       self.copy_images
+      self.after_build
 
       info 'Location: builds/html/multiple/'
       info END_LINE

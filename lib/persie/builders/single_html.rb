@@ -13,8 +13,10 @@ module Persie
     def build
       info '=== Build Single HTML ' << '=' * 50
 
+      self.before_build
       self.check_sample
       self.generate_html
+      self.after_build
 
       info END_LINE
 

@@ -23,12 +23,14 @@ module Persie
     def build
       info '=== Build ePub ' << '=' * 57
 
+      self.before_build
       self.check_sample
       self.convert_to_single_html
       self.generate_spine_items
       self.chunk
       self.generate_epub
       self.validate
+      self.after_build
 
       info END_LINE
     end

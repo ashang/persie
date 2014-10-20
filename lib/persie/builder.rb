@@ -28,6 +28,16 @@ module Persie
       raise ::NotImplementedError
     end
 
+    # Do nothing here.
+    # Implement in subclass or plugin.
+    def before_build
+    end
+
+    # Do nothing here.
+    # Implement in subclass or plugin.
+    def after_build
+    end
+
     # If in sample mode, show an indicator in command line.
     def check_sample
       if sample?

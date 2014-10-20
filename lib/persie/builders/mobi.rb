@@ -11,10 +11,12 @@ module Persie
     def build
       info '=== Build mobi ' << '=' * 57
 
+      self.before_build
       self.check_dependency
       check_sample
       self.check_epub
       self.generate_mobi
+      self.after_build
 
       info END_LINE
     end

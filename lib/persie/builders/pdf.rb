@@ -13,12 +13,13 @@ module Persie
     def build
       info '=== Build PDF ' << '=' * 58
 
+      self.before_build
       self.check_dependency
       self.check_sample
-
       self.convert_to_html
       self.restart_page_number
       self.convert_to_pdf
+      self.after_build
 
       info END_LINE
 
