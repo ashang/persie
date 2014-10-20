@@ -79,7 +79,7 @@ module Persie
 
     # Renders ERb layouts.
     def render_layout(payloads)
-      path = File.join @book.themes_dir, 'html', "#{format}.html.liquid"
+      path = File.join @book.themes_dir, 'html', 'single.html.liquid'
 
       return nil unless File.exist? path
 
