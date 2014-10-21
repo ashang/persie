@@ -64,7 +64,7 @@ module Persie
 
     def add_images
       resources(workdir: @base_dir) do
-        glob 'images/*.*'
+        glob 'images/**/*.*'
       end
     end
 
