@@ -413,11 +413,11 @@ MathJax.Hub.Config({
         img_element = %(<a href="#{link}">#{img_element}</a>)
       end
       id_attr = node.id ? %( id="#{node.id}") : nil
-      classes = ['image', node.style, node.role].compact
+      classes = ['figure', node.style, node.role].compact
       class_attr = %( class="#{classes * ' '}")
-      title_element = node.title? ? %(<figcaption>#{captioned_title_mod_of(node)}</figcaption>) : nil
+      title_element = node.title? ? %(<div class="figcaption">#{captioned_title_mod_of(node)}</div>) : nil
 
-      %(<figure#{id_attr}#{class_attr}#{style_attr}>#{img_element}#{title_element}</figure>)
+      %(<div#{id_attr}#{class_attr}#{style_attr}>#{img_element}#{title_element}</div>)
     end
 
     # Use rouge to highlight source code
@@ -597,10 +597,10 @@ MathJax.Hub.Config({
         nil
       end
 
-      result = [%(<aside data-type="sidebar"#{epub_type_attr}#{id_attr}#{class_attr}>)]
+      result = [%(<div data-type="sidebar"#{epub_type_attr}#{id_attr}#{class_attr}>)]
       result << title_element
       result << node.content
-      result << '</aside>'
+      result << '</div>'
 
       result * "\n"
     end
