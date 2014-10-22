@@ -1,8 +1,8 @@
 require 'time'
 
-require_relative '../gepub_ext'
 require_relative '../builder'
 require_relative '../chunkable'
+require_relative '../gepub_ext/gepub_builder'
 
 module Persie
 
@@ -55,6 +55,9 @@ module Persie
         @has_toc = has_toc
         @spine_items = spine_items
         @spine_item_titles = spine_item_titles
+
+        add_ibooks_version
+        add_ibooks_specified_fonts
 
         language doc.attr('lang', 'en')
         id 'pub-language'

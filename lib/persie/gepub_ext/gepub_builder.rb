@@ -1,3 +1,5 @@
+require_relative 'ibooks_fonts'
+
 module Persie
   module GepubBuilderMixin
 
@@ -35,6 +37,19 @@ module Persie
       else
         text
       end
+    end
+
+    def add_ibooks_version
+      rev = @doc.attr 'revnumber', '1.0'
+      if rev !~ /\d{1,4}\.\d{1,4}(\.\d{1,4})?/
+        rev = '1.0'
+      end
+
+      ibooks_version rev
+    end
+
+    def add_ibooks_specified_fonts
+      ibooks_specified_fonts true
     end
 
     def authors
