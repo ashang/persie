@@ -39,7 +39,7 @@ module Persie
       # QUSTION: is this necessary?
       FileUtils.rm_r(images_dir) if File.directory?(images_dir)
 
-      info 'Copy images...'
+      info 'Copying images...'
       FileUtils.cp_r "#{@book.images_dir}/.", images_dir
       confirm '    Done'
     end
