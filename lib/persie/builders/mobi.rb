@@ -64,15 +64,23 @@ module Persie
     # Gets ePub file path.
     def epub_path(relative=false)
       name = sample? ? "#{@book.slug}-sample" : @book.slug
-      return "#{name}.epub" if relative
 
-      File.join(@book.builds_dir, 'epub', "#{name}.epub")
+      rev = @document.attr?('revnumber') ? "-#{@document.attr('revnumber')}" : nil
+      rev = nil if sample?
+
+      return "#{name}#{rev}.epub" if relative
+
+      File.join(@book.builds_dir, 'epub', "#{name}#{rev}.epub")
     end
 
     # Gets mobi file path.
     def mobi_path(relative = false)
       name = sample? ? "#{@book.slug}-sample" : @book.slug
-      path = File.join('builds', 'mobi', "#{name}.mobi")
+
+      rev = @document.attr?('revnumber') ? "-#{@document.attr('revnumber')}" : nil
+      rev = nil if sample?
+
+      path = File.join('builds', 'mobi', "#{name}#{rev}.mobi")
       return path if relative
 
       File.join(@book.base_dir, path)

@@ -5,7 +5,7 @@ describe 'Cli#build(epub)' do
   it 'generates a epub file' do
     FileUtils.cd(A_BOOK_PATH) do
       persie_command 'build epub'
-      path = 'builds/epub/a-book.epub'
+      path = 'builds/epub/a-book-0.0.1.epub'
 
       expect(path).to be_exists
 
