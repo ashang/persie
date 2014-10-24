@@ -47,6 +47,7 @@ module Persie
       ebook_format = node.attr('ebook-format')
 
       result = []
+      result << %(<?xml version="1.0" encoding="UTF-8" ?>) if EPUB_FORMATS.include? ebook_format
       result << '<!DOCTYPE html>'
       lang_attr = %(lang="#{node.attr('lang', 'en')}")
       if EPUB_FORMATS.include? ebook_format
