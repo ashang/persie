@@ -245,7 +245,7 @@ module Persie
     def replace_footnote_with_sup(footnotes)
       footnotes.each_with_index do |fn, i|
         index = i + 1
-        fn.replace(%(<sup><a id="fn-ref-#{index}" href="#fn-#{index}">#{index}</a></sup>))
+        fn.replace(%(<sup>[<a id="fn-ref-#{index}" href="#fn-#{index}">#{index}</a>]</sup>))
       end
 
       nil
