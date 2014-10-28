@@ -57,13 +57,14 @@ module Persie
       top_level_sections = resolve_top_level_sections(root)
 
       # stupid check, incase of something went wrong
+      if @options.debug?
+        info 'sections count: ' << top_level_sections.count.inspect
+        info 'spine_items: ' << self.spine_items.inspect
+      end
+
       unless top_level_sections.count == self.spine_items.count
         error '    Count of sections DO NOT equal to spine items count.'
         error '    Terminated!'
-        if @options.debug?
-          info 'sections count: ' + top_level_sections.count
-          info 'spine_items: ' + self.spine_items.inspect
-        end
         info  '=' * 72
         exit 31
       end
