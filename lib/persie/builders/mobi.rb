@@ -44,7 +44,7 @@ module Persie
       FileUtils.chdir File.dirname(self.epub_path) do
         info 'Converting to mobi...'
 
-        system "kindlegen -c2 #{self.epub_path(true)}"
+        system "kindlegen -c2 -dont_append_source #{self.epub_path(true)}"
 
         mobi_file = File.basename(self.mobi_path)
         if File.exist? mobi_file

@@ -1,6 +1,7 @@
 == master
 
 - 修正 mobi 格式中文乱码问题（[#4](https://github.com/AndorChen/persie/issues/4)）
+- 减小 mobi 文件的大小（[#7](https://github.com/AndorChen/persie/issues/7)）
 
 == 0.0.1.alpha.3 / 2014-10-22
 
