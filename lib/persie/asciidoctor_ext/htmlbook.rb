@@ -716,6 +716,10 @@ MathJax.Hub.Config({
       result * "\n"
     end
 
+    def pass(node)
+      node.content
+    end
+
     def verse(node)
       id_attr = node.id ? %( id="#{node.id}") : nil
       classes = ['verse', node.role].compact
