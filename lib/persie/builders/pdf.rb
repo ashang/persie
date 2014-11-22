@@ -63,7 +63,7 @@ module Persie
       html = @document.convert
       prepare_directory(self.html_path)
       File.write(self.html_path, html)
-      confirm '    HTMl file created'
+      confirm '    HTML file created'
       info    "    Location: #{self.html_path(true)}"
       info '' # new line
     end
