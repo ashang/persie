@@ -426,7 +426,7 @@ MathJax.Hub.Config({
     # You can set `linenums' block attribute to turn on line numbers for specific source block
     def listing(node)
       if node.style == 'source'
-        language = node.attr('language') # will fall back to global language attribute
+        language = node.attr('language', 'plaintext')
         highlight = node.document.attr?('highlight')
         linenums = node.attr?('linenums')
 
