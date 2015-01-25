@@ -1092,7 +1092,7 @@ MathJax.Hub.Config({
       if @reset_num != level_1_num
         @nums.each_key { |k| @nums[k] = 0 }
         @nums["#{ctx}"] += 1
-        @reset_num = nil
+        @reset_num = level_1_num
       else
         @nums["#{ctx}"] += 1
       end
