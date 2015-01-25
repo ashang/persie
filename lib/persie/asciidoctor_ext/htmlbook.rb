@@ -1087,7 +1087,6 @@ MathJax.Hub.Config({
       ctx = node.context
       # FIXME maybe node.parent is not correct
       level_1_num = node.parent.sectnum.split('.', 2).first
-      @reset_num ||= level_1_num
 
       if @reset_num != level_1_num
         @nums.each_key { |k| @nums[k] = 0 }
