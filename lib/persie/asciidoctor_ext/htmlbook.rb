@@ -2,6 +2,7 @@ require 'asciidoctor'
 require 'rouge'
 
 require 'time'
+require 'cgi/util'
 
 module Persie
   # A custom Asciidoctor backend, convert AsciiDoc to O'Reilly HTMLBook.
@@ -432,7 +433,8 @@ MathJax.Hub.Config({
 
         if highlight
           classes = "highlight language-#{language}"
-          pre_element = rouge_highlight(node.content, language, classes, linenums)
+          unescaped_content = CGI::unescape_html(node.content)
+          pre_element = rouge_highlight(unescaped_content, language, classes, linenums)
         else
           if linenums
             pre_element = rouge_highlight(node.content, 'plaintext', '', true)
